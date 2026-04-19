@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  font-weight: 300;
+}
+
+:root {
+  font-family: Arial, sans-serif;
+}
+
+/* Lighter headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.chakra-heading {
+  font-weight: 300 !important;
+}
+
+.chakra-text {
+  font-weight: 300;
+}
+
+/* Unified badge styling across the app */
+.chakra-badge {
+  background: var(--chakra-colors-rbac-system-700) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--chakra-colors-rbac-system-600) !important;
+  border-radius: 0.125rem !important;
+  padding: 0.2rem 0.5rem !important;
+  font-weight: 400;
+}
+
+/* Modernize all cards, even when inline borders are set */
+.chakra-card {
+  border-color: var(--chakra-colors-rbac-system-100) !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-radius: 0.25rem !important;
+  box-shadow: 0 12px 32px rgba(17, 26, 51, 0.08) !important;
+  overflow: hidden !important;
+}
+
+.chakra-ui-dark .chakra-card {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Card header gradient styling - universal selector for card titles */
+.chakra-card > .chakra-card__body > p:first-child {
+  background: linear-gradient(to right, #111a33, #1b2a4b, #2a3f6e) !important;
+  color: white !important;
+  margin: -1rem -1rem 1rem -1rem !important;
+  padding: 1rem !important;
+  font-weight: 500 !important;
+}
+
+.chakra-ui-dark .chakra-card > .chakra-card__body > p:first-child {
+  background: linear-gradient(to right, #111a33, #1b2a4b, #1b2a4b) !important;
+}
+
+/* Dark mode: remove leftover green borders */
+.chakra-ui-dark .chakra-popover__content,
+.chakra-ui-dark .chakra-table,
+.chakra-ui-dark .chakra-input,
+.chakra-ui-dark .chakra-select,
+.chakra-ui-dark .chakra-textarea,
+.chakra-ui-dark .chakra-alert {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Icon styling for visual consistency and depth (main content only) */
+main svg.h-3,
+main svg.h-4,
+main svg.h-5,
+main svg.h-6,
+main .chakra-icon {
+  color: var(--chakra-colors-rbac-system-600) !important;
+  filter: drop-shadow(0 1px 1px rgba(17, 26, 51, 0.35));
+}
+
+main .icon-on-dark svg,
+main .icon-on-dark .chakra-icon {
+  color: #ffffff !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.chakra-ui-dark main svg.h-3,
+.chakra-ui-dark main svg.h-4,
+.chakra-ui-dark main svg.h-5,
+.chakra-ui-dark main svg.h-6,
+.chakra-ui-dark main .chakra-icon {
+  color: var(--chakra-colors-rbac-system-200) !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
