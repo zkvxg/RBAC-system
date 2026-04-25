@@ -31,6 +31,13 @@ async function createTestUser(page, suffix = Date.now()) {
   await expect(page.getByText("User created successfully").first()).toBeVisible(
     { timeout: 10000 },
   );
+  // czekamy az modal sie zamknie i lista sie odswiezy zeby kolejne akcje dzialaly i na mockach (state w pamieci) i na realnym backendzie (refetch)
+  await expect(page.getByRole("button", { name: /create user/i })).toBeHidden({
+    timeout: 10000,
+  });
+  await expect(
+    page.locator("tbody tr").filter({ hasText: email }).first(),
+  ).toBeVisible({ timeout: 15000 });
   return { name, email };
 }
 
@@ -151,9 +158,7 @@ test.describe("User Management Complete Workflow", () => {
     // tworzymy unikalnego usera i go wyszukujemy zeby test dzialal i na mockach i na seedach
     const { name, email } = await createTestUser(page, `search-${Date.now()}`);
 
-    await page.goto("/users");
-    await page.waitForSelector("tbody tr", { timeout: 20000 });
-
+    // createTestUser juz potwierdzil ze wiersz istnieje, wiec mozna od razu filtrowac
     const searchInput = page.getByPlaceholder(/search users/i);
     await expect(searchInput).toBeVisible({ timeout: 10000 });
     await searchInput.fill(name);
@@ -227,11 +232,9 @@ test.describe("User Management Complete Workflow", () => {
     await page.goto("/users");
 
     // sprawdzenie czy tabela zawiera wiersze danych
-    await page.waitForSelector("table", { timeout: 5000 });
-    const rows = page
-      .locator("table tr")
-      .filter({ hasNot: page.locator("th") });
-    await expect(rows.first()).toBeVisible();
+    await page.waitForSelector("table", { timeout: 15000 });
+    const rows = page.locator("table tbody tr");
+    await expect(rows.first()).toBeVisible({ timeout: 15000 });
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
   });
