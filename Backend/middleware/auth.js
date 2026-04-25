@@ -20,12 +20,34 @@ const auth = {
   },
 
   requireAdmin(req, res, next) {
-    if (req.user.role !== "admin") {
+    if (!req.user || req.user.role !== "admin") {
       return res
         .status(403)
         .json({ message: "Access denied. Admin privileges required." });
     }
     next();
+  },
+
+  // sprawdza czy uzytkownik ma konkretne uprawnienie z listy permissions w jwt.
+  // admin zawsze ma wszystkie uprawnienia.
+  requirePermission(permission) {
+    return (req, res, next) => {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (req.user.role === "admin") {
+        return next();
+      }
+      const perms = Array.isArray(req.user.permissions)
+        ? req.user.permissions
+        : [];
+      if (!perms.includes(permission)) {
+        return res
+          .status(403)
+          .json({ message: `Missing permission: ${permission}` });
+      }
+      next();
+    };
   },
 };
 

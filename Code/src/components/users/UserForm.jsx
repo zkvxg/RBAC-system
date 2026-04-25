@@ -97,7 +97,7 @@ function UserForm({ user, onSubmit, onCancel }) {
     }
 
     if (formData.phone) {
-      // Remove any non-digit characters
+      // usun wszystkie znaki inne niz cyfry
       const phoneDigits = formData.phone.replace(/\D/g, "");
       if (phoneDigits.length !== 9) {
         newErrors.phone = "Phone number must be exactly 9 digits";

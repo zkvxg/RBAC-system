@@ -1,6 +1,9 @@
 const { defineConfig, devices } = require("@playwright/test");
 
-// konfiguracja playwright 
+process.env.NODE_ENV = "test";
+process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
+
+// konfiguracja playwright
 module.exports = defineConfig({
   testDir: "./tests",
   fullyParallel: false,

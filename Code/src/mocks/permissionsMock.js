@@ -25,4 +25,11 @@ export const AVAILABLE_PERMISSIONS = {
       { id: "reports.export", name: "Export Reports" },
     ],
   },
+  profile: {
+    name: "Profile",
+    permissions: [
+      { id: "profile.view", name: "View Profile" },
+      { id: "profile.edit", name: "Edit Profile" },
+    ],
+  },
 };

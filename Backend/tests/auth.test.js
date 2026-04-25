@@ -65,7 +65,7 @@ test.describe("Authentication System", () => {
         include: [{ model: Role }],
       });
 
-      expect(user.Role.name).toBe("user");
+      expect(user.Role.name).toBe("employee");
     });
   });
 
@@ -156,7 +156,7 @@ test.describe("Authentication System", () => {
     // test odrzucenia wygasniętego tokenu jwt
     test("should reject expired token", async () => {
       const expiredToken = jwt.sign(
-        { userId: 1, role: "user" },
+        { userId: 1, role: "employee" },
         process.env.JWT_SECRET,
         { expiresIn: "0s" },
       );

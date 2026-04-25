@@ -17,7 +17,8 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  timeout: 30000,
+  // 60s zeby firefox webkit zdazyly na slabszym sprzecie i przy realnym backendzie
+  timeout: 60000,
   expect: {
     timeout: 10000,
   },

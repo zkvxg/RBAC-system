@@ -2,10 +2,10 @@ import { test, expect } from "@playwright/test";
 
 async function loginAsAdmin(page) {
   await page.goto("/login");
-  await page.getByLabel("Email").fill("admin@example.com");
+  await page.getByLabel("Email").fill("admin@test.com");
   await page.getByPlaceholder("Enter your password").fill("test123");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 }
 
 // test nawigacji do strony users i wyswietlenia przycisku add user

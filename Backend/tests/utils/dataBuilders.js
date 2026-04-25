@@ -35,7 +35,7 @@ const buildRegisterPayload = (overrides = {}) => buildUser(overrides);
 
 // builder payloadu logowania uzytkownika
 const buildLoginPayload = (overrides = {}) => ({
-  email: overrides.email || "user@test.com",
+  email: overrides.email || "employee.fixture@test.com",
   password: overrides.password || "test123",
 });
 

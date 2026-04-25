@@ -9,15 +9,15 @@ https://zkvxg-rbac-system.vercel.app/
 ## Test Credentials
 
 **Admin**
-- email - admin@example.com
+- email - admin@test.com
 - password - test123
 
 **Manager**
-- email - manager@example.com
+- email - manager@test.com
 - password - test123
 
 **Employee**
-- email - employee@example.com  
+- email - employee@test.com 
 - password - test123
 
 ## Tech Stack

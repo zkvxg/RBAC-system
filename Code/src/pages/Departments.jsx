@@ -194,10 +194,10 @@ function Departments() {
     return matchesSearch && matchesStatus && matchesLocation;
   });
 
-  // Get unique locations for filter
+   // pobierz unikalne lokalizacje dla filtra
   const locations = [...new Set(departments.map((dept) => dept.location))];
 
-  // Determine display mode based on screen size
+// okresl tryb wyswietlania na podstawie rozmiaru ekranu
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
   const renderMobileCard = (department) => (

@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 const credentials = {
-  admin: { email: "admin@example.com", password: "test123" },
-  manager: { email: "manager@example.com", password: "test123" },
-  employee: { email: "employee@example.com", password: "test123" },
+  admin: { email: "admin@test.com", password: "test123" },
+  manager: { email: "manager@test.com", password: "test123" },
+  employee: { email: "employee@test.com", password: "test123" },
 };
 
 async function login(page, role = "admin") {
@@ -12,7 +12,7 @@ async function login(page, role = "admin") {
   await page.getByLabel("Email").fill(email);
   await page.getByPlaceholder("Enter your password").fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 }
 
 // test logowania jako admin i wyswietlenia dashboardu

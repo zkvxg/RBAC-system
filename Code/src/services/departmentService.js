@@ -6,7 +6,7 @@ let departments = [...MOCK_DEPARTMENTS];
 class DepartmentService {
   async getDepartments() {
     try {
-      // Update employee counts based on user data
+      // zaktualizuj liczbe pracowników na podstawie danych użytkownika
       const users = await userService.getUsers();
       departments = departments.map((dept) => ({
         ...dept,
@@ -61,7 +61,7 @@ class DepartmentService {
 
   async deleteDepartment(id) {
     try {
-      // Check if department has employees
+      // sprawdz czy dzial ma pracownikow
       const users = await userService.getUsers();
       const departmentToDelete = departments.find((d) => d.id === id);
       const hasEmployees = users.some(

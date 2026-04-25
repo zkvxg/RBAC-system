@@ -44,7 +44,7 @@ function NotFound() {
         <Button
           colorScheme="rbac-system"
           size="lg"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
         >
           Go Back Home
         </Button>

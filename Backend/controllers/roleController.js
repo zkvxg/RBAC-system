@@ -15,6 +15,24 @@ const roleController = {
   async createRole(req, res) {
     try {
       const { name, permissions, description } = req.body;
+
+      if (!name || !description || permissions === undefined) {
+        return res
+          .status(400)
+          .json({ message: "name, description and permissions are required" });
+      }
+
+      if (!Array.isArray(permissions)) {
+        return res
+          .status(400)
+          .json({ message: "permissions must be an array" });
+      }
+
+      const existing = await Role.findOne({ where: { name } });
+      if (existing) {
+        return res.status(409).json({ message: "Role already exists" });
+      }
+
       const role = await Role.create({ name, permissions, description });
       res.status(201).json(role);
     } catch (error) {

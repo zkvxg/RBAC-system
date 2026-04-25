@@ -40,6 +40,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { userService } from "../services/userService";
+import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
@@ -80,8 +81,12 @@ function Users() {
   });
 
   const departments = ["IT", "HR", "Sales", "Marketing", "Finance"];
-  const roles = ["Admin", "Manager", "User"];
+  const roles = ["Admin", "Manager", "Employee"];
   const statuses = ["Active", "Inactive"];
+
+  const canCreate = authService.hasPermission("users.create");
+  const canEdit = authService.hasPermission("users.edit");
+  const canDelete = authService.hasPermission("users.delete");
 
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
@@ -271,7 +276,7 @@ function Users() {
                       ? "linear(to-r, rbac-system.700, rbac-system.600)"
                       : "linear(to-r, rbac-system.500, rbac-system.400)"
                 }
-                color={user.role === "User" ? "rbac-system.900" : "white"}
+                color={user.role === "Employee" ? "rbac-system.900" : "white"}
                 mb={1}
               >
                 {user.role}
@@ -299,22 +304,26 @@ function Users() {
 
           {/* Actions */}
           <HStack justify="flex-end" spacing={2}>
-            <IconButton
-              icon={<PencilSquareIcon className="h-4 w-4" />}
-              variant="ghost"
-              colorScheme="rbac-system"
-              size="sm"
-              onClick={() => handleEditUser(user)}
-              aria-label="Edit user"
-            />
-            <IconButton
-              icon={<TrashIcon className="h-4 w-4" />}
-              variant="ghost"
-              colorScheme="red"
-              size="sm"
-              onClick={() => handleDeleteClick(user)}
-              aria-label="Delete user"
-            />
+            {canEdit && (
+              <IconButton
+                icon={<PencilSquareIcon className="h-4 w-4" />}
+                variant="ghost"
+                colorScheme="rbac-system"
+                size="sm"
+                onClick={() => handleEditUser(user)}
+                aria-label="Edit user"
+              />
+            )}
+            {canDelete && (
+              <IconButton
+                icon={<TrashIcon className="h-4 w-4" />}
+                variant="ghost"
+                colorScheme="red"
+                size="sm"
+                onClick={() => handleDeleteClick(user)}
+                aria-label="Delete user"
+              />
+            )}
           </HStack>
         </Stack>
       </Box>
@@ -383,13 +392,15 @@ function Users() {
             ))}
           </Select>
         </Stack>
-        <Button
-          leftIcon={<PlusIcon className="h-5 w-5" />}
-          colorScheme="rbac-system"
-          onClick={handleAddUser}
-        >
-          Add User
-        </Button>
+        {canCreate && (
+          <Button
+            leftIcon={<PlusIcon className="h-5 w-5" />}
+            colorScheme="rbac-system"
+            onClick={handleAddUser}
+          >
+            Add User
+          </Button>
+        )}
       </Flex>
 
       <Text color={textColor} fontSize="sm" mb={4}>
@@ -509,7 +520,9 @@ function Users() {
                                 : "linear(to-r, rbac-system.500, rbac-system.400)"
                           }
                           color={
-                            user.role === "User" ? "rbac-system.900" : "white"
+                            user.role === "Employee"
+                              ? "rbac-system.900"
+                              : "white"
                           }
                           rounded="full"
                           px={2}
@@ -552,27 +565,31 @@ function Users() {
                     </Td>
                     <Td borderColor={borderColor}>
                       <HStack spacing={2}>
-                        <Tooltip label="Edit user details" hasArrow>
-                          <IconButton
-                            icon={<PencilSquareIcon className="h-4 w-4" />}
-                            variant="ghost"
-                            colorScheme="rbac-system"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                            aria-label="Edit user"
-                          />
-                        </Tooltip>
+                        {canEdit && (
+                          <Tooltip label="Edit user details" hasArrow>
+                            <IconButton
+                              icon={<PencilSquareIcon className="h-4 w-4" />}
+                              variant="ghost"
+                              colorScheme="rbac-system"
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                              aria-label="Edit user"
+                            />
+                          </Tooltip>
+                        )}
 
-                        <Tooltip label="Delete user" hasArrow>
-                          <IconButton
-                            icon={<TrashIcon className="h-4 w-4" />}
-                            variant="ghost"
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() => handleDeleteClick(user)}
-                            aria-label="Delete user"
-                          />
-                        </Tooltip>
+                        {canDelete && (
+                          <Tooltip label="Delete user" hasArrow>
+                            <IconButton
+                              icon={<TrashIcon className="h-4 w-4" />}
+                              variant="ghost"
+                              colorScheme="red"
+                              size="sm"
+                              onClick={() => handleDeleteClick(user)}
+                              aria-label="Delete user"
+                            />
+                          </Tooltip>
+                        )}
                       </HStack>
                     </Td>
                   </Tr>

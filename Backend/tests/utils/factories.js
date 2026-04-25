@@ -16,54 +16,85 @@ const createUser = async (role, overrides = {}) => {
   return User.create(payload);
 };
 
-// seedowanie bazy danych z adminem i zwyklym userem
-const seedAdminAndUser = async () => {
-  const adminRole = await createRole({
-    name: "admin",
-    permissions: ["read", "write", "delete", "manage_users", "manage_roles"],
-    description: "Administrator role",
+// seedowanie bazy danych z adminem i employee (idempotentne)
+const seedAdminAndEmployee = async () => {
+  const [adminRole] = await Role.findOrCreate({
+    where: { name: "admin" },
+    defaults: buildRole({
+      name: "admin",
+      permissions: ["read", "write", "delete", "manage_users", "manage_roles"],
+      description: "Administrator role",
+    }),
   });
 
-  const userRole = await createRole({
-    name: "user",
-    permissions: ["read"],
-    description: "Basic user role",
+  const [employeeRole] = await Role.findOrCreate({
+    where: { name: "employee" },
+    defaults: buildRole({
+      name: "employee",
+      permissions: ["roles.view"],
+      description: "Basic employee role",
+    }),
   });
 
-  const adminUser = await createUser(adminRole, {
-    username: "admin",
-    email: "admin@test.com",
-    password: "test123",
-  });
+  let adminUser = await User.findOne({ where: { email: "admin@test.com" } });
+  if (!adminUser) {
+    adminUser = await createUser(adminRole, {
+      username: "admin",
+      email: "admin@test.com",
+      password: "test123",
+    });
+  }
 
-  const regularUser = await createUser(userRole, {
-    username: "user",
-    email: "user@test.com",
-    password: "test123",
+  let employeeUser = await User.findOne({
+    where: { email: "employee.fixture@test.com" },
   });
+  if (!employeeUser) {
+    employeeUser = await createUser(employeeRole, {
+      username: "employee_fixture",
+      email: "employee.fixture@test.com",
+      password: "test123",
+    });
+  }
 
-  // generowanie tokenow jwt dla admin i user
+  // generowanie tokenow jwt dla admin i employee
+  const adminPerms = Array.isArray(adminRole.permissions)
+    ? adminRole.permissions
+    : [];
+  const employeePerms = Array.isArray(employeeRole.permissions)
+    ? employeeRole.permissions
+    : [];
   const adminToken = jwt.sign(
-    { userId: adminUser.id, role: "admin" },
+    { userId: adminUser.id, role: "admin", permissions: adminPerms },
     process.env.JWT_SECRET,
   );
 
-  const userToken = jwt.sign(
-    { userId: regularUser.id, role: "user" },
+  const employeeToken = jwt.sign(
+    {
+      userId: employeeUser.id,
+      role: "employee",
+      permissions: employeePerms,
+    },
     process.env.JWT_SECRET,
   );
 
-  return { adminRole, userRole, adminUser, regularUser, adminToken, userToken };
+  return {
+    adminRole,
+    employeeRole,
+    adminUser,
+    employeeUser,
+    adminToken,
+    employeeToken,
+  };
 };
 
 // tworzenie tokenow jwt dla istniejacych uzytkownikow
-const createTokens = ({ adminUser, regularUser }) => ({
+const createTokens = ({ adminUser, employeeUser }) => ({
   adminToken: jwt.sign(
-    { userId: adminUser.id, role: "admin" },
+    { userId: adminUser.id, role: "admin", permissions: [] },
     process.env.JWT_SECRET,
   ),
-  userToken: jwt.sign(
-    { userId: regularUser.id, role: "user" },
+  employeeToken: jwt.sign(
+    { userId: employeeUser.id, role: "employee", permissions: [] },
     process.env.JWT_SECRET,
   ),
 });
@@ -71,6 +102,6 @@ const createTokens = ({ adminUser, regularUser }) => ({
 module.exports = {
   createRole,
   createUser,
-  seedAdminAndUser,
+  seedAdminAndEmployee,
   createTokens,
 };

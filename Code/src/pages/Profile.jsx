@@ -28,6 +28,7 @@ import PageHeader from "../components/layout/PageHeader";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function ProfileField({ icon, label, value }) {
   const iconBg = useColorModeValue("rbac-system.600", "rbac-system.800");
@@ -67,7 +68,18 @@ ProfileField.propTypes = {
 };
 
 function Profile() {
-  const user = authService.getCurrentUser();
+  const [user, setUser] = useState(() => authService.getCurrentUser());
+
+  useEffect(() => {
+    const refresh = () => setUser(authService.getCurrentUser());
+    window.addEventListener("user-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("user-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.600", "gray.300");

@@ -65,18 +65,20 @@ function Login() {
   const { colorMode, toggleColorMode } = useColorMode();
 
   const testCredentials = [
-    { role: "Admin", 
-      email: "admin@example.com", 
-      password: "test123"
+    {
+      role: "Admin",
+      email: "admin@test.com",
+      password: "test123",
     },
-    { role: "Manager", 
-      email: "manager@example.com", 
-      password: "test123" 
+    {
+      role: "Manager",
+      email: "manager@test.com",
+      password: "test123",
     },
     {
       role: "Employee",
-      email: "employee@example.com",
-      password: "test123"
+      email: "employee@test.com",
+      password: "test123",
     },
   ];
 
@@ -92,7 +94,7 @@ function Login() {
         status: "success",
         duration: 3000,
       });
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError("Invalid email or password");
       toast({

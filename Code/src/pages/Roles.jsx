@@ -40,6 +40,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { roleService } from "../services/roleService";
+import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import RoleForm from "../components/roles/RoleForm";
 import RolePermissions from "../components/roles/RolePermissions";
@@ -78,6 +79,10 @@ function Roles() {
     search: "",
     status: "",
   });
+
+  const canCreate = authService.hasPermission("roles.create");
+  const canEdit = authService.hasPermission("roles.edit");
+  const canDelete = authService.hasPermission("roles.delete");
 
   useEffect(() => {
     loadRoles();
@@ -194,7 +199,7 @@ function Roles() {
         return "linear(to-r, rbac-system.800, rbac-system.700)";
       case "manager":
         return "linear(to-r, rbac-system.700, rbac-system.600)";
-      case "user":
+      case "employee":
         return "linear(to-r, rbac-system.500, rbac-system.400)";
       default:
         return "linear(to-r, rbac-system.600, rbac-system.500)";
@@ -202,7 +207,7 @@ function Roles() {
   };
 
   const getRoleBadgeTextColor = (roleName) =>
-    roleName.toLowerCase() === "user" ? "rbac-system.900" : "white";
+    roleName.toLowerCase() === "employee" ? "rbac-system.900" : "white";
 
   const getStatusBadgeGradient = (status) =>
     status === "Active"
@@ -310,23 +315,27 @@ function Roles() {
 
           {/* Actions */}
           <HStack justify="flex-end" spacing={2}>
-            <IconButton
-              icon={<PencilSquareIcon className="h-4 w-4" />}
-              variant="ghost"
-              colorScheme="rbac-system"
-              size="sm"
-              onClick={() => handleEditRole(role)}
-              aria-label="Edit role"
-            />
-            <IconButton
-              icon={<TrashIcon className="h-4 w-4" />}
-              variant="ghost"
-              colorScheme="red"
-              size="sm"
-              onClick={() => handleDeleteClick(role)}
-              aria-label="Delete role"
-              isDisabled={role.name === "Admin"}
-            />
+            {canEdit && (
+              <IconButton
+                icon={<PencilSquareIcon className="h-4 w-4" />}
+                variant="ghost"
+                colorScheme="rbac-system"
+                size="sm"
+                onClick={() => handleEditRole(role)}
+                aria-label="Edit role"
+              />
+            )}
+            {canDelete && (
+              <IconButton
+                icon={<TrashIcon className="h-4 w-4" />}
+                variant="ghost"
+                colorScheme="red"
+                size="sm"
+                onClick={() => handleDeleteClick(role)}
+                aria-label="Delete role"
+                isDisabled={role.name === "Admin"}
+              />
+            )}
           </HStack>
         </Stack>
       </Box>
@@ -364,13 +373,15 @@ function Roles() {
             <option value="Inactive">Inactive</option>
           </Select>
         </Stack>
-        <Button
-          leftIcon={<PlusIcon className="h-5 w-5" />}
-          colorScheme="rbac-system"
-          onClick={handleAddRole}
-        >
-          Add Role
-        </Button>
+        {canCreate && (
+          <Button
+            leftIcon={<PlusIcon className="h-5 w-5" />}
+            colorScheme="rbac-system"
+            onClick={handleAddRole}
+          >
+            Add Role
+          </Button>
+        )}
       </Flex>
 
       <Text color={textColor} fontSize="sm" mb={4}>
@@ -509,46 +520,52 @@ function Roles() {
                     </Td>
                     <Td borderColor={borderColor}>
                       <HStack spacing={2}>
-                        <Tooltip label="Edit role permissions" hasArrow>
-                          <IconButton
-                            icon={<KeyIcon className="h-4 w-4" />}
-                            variant="ghost"
-                            colorScheme="rbac-system"
-                            size="sm"
-                            onClick={() => handlePermissionsClick(role)}
-                            aria-label="Edit permissions"
-                          />
-                        </Tooltip>
+                        {canEdit && (
+                          <Tooltip label="Edit role permissions" hasArrow>
+                            <IconButton
+                              icon={<KeyIcon className="h-4 w-4" />}
+                              variant="ghost"
+                              colorScheme="rbac-system"
+                              size="sm"
+                              onClick={() => handlePermissionsClick(role)}
+                              aria-label="Edit permissions"
+                            />
+                          </Tooltip>
+                        )}
 
-                        <Tooltip label="Edit role details" hasArrow>
-                          <IconButton
-                            icon={<PencilSquareIcon className="h-4 w-4" />}
-                            variant="ghost"
-                            colorScheme="rbac-system"
-                            size="sm"
-                            onClick={() => handleEditRole(role)}
-                            aria-label="Edit role"
-                          />
-                        </Tooltip>
+                        {canEdit && (
+                          <Tooltip label="Edit role details" hasArrow>
+                            <IconButton
+                              icon={<PencilSquareIcon className="h-4 w-4" />}
+                              variant="ghost"
+                              colorScheme="rbac-system"
+                              size="sm"
+                              onClick={() => handleEditRole(role)}
+                              aria-label="Edit role"
+                            />
+                          </Tooltip>
+                        )}
 
-                        <Tooltip
-                          label={
-                            role.name === "Admin"
-                              ? "Admin role cannot be deleted"
-                              : "Delete role"
-                          }
-                          hasArrow
-                        >
-                          <IconButton
-                            icon={<TrashIcon className="h-4 w-4" />}
-                            variant="ghost"
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() => handleDeleteClick(role)}
-                            aria-label="Delete role"
-                            isDisabled={role.name === "Admin"}
-                          />
-                        </Tooltip>
+                        {canDelete && (
+                          <Tooltip
+                            label={
+                              role.name === "Admin"
+                                ? "Admin role cannot be deleted"
+                                : "Delete role"
+                            }
+                            hasArrow
+                          >
+                            <IconButton
+                              icon={<TrashIcon className="h-4 w-4" />}
+                              variant="ghost"
+                              colorScheme="red"
+                              size="sm"
+                              onClick={() => handleDeleteClick(role)}
+                              aria-label="Delete role"
+                              isDisabled={role.name === "Admin"}
+                            />
+                          </Tooltip>
+                        )}
                       </HStack>
                     </Td>
                   </Tr>

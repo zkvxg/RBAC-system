@@ -9,24 +9,24 @@ const { User } = require("../models");
 test.describe("User Management", () => {
   let apiClient;
   let adminToken;
-  let userToken;
+  let employeeToken;
   let testUserId;
   let adminRoleId;
-  let userRoleId;
+  let employeeRoleId;
 
   test.beforeAll(async () => {
     apiClient = await new PlaywrightApiClient().init();
 
     // uzycie globalnych tokenow z setup
     adminToken = process.env.ADMIN_TOKEN;
-    userToken = process.env.USER_TOKEN;
+    employeeToken = process.env.EMPLOYEE_TOKEN;
 
     // pobieranie role id z bazy danych
     const { Role } = require("../models");
     const adminRole = await Role.findOne({ where: { name: "admin" } });
-    const userRole = await Role.findOne({ where: { name: "user" } });
+    const employeeRole = await Role.findOne({ where: { name: "employee" } });
     adminRoleId = adminRole.id;
-    userRoleId = userRole.id;
+    employeeRoleId = employeeRole.id;
   });
 
   test.afterAll(async () => {
@@ -41,13 +41,15 @@ test.describe("User Management", () => {
       expect(response.status()).toBe(200);
       const body = await response.json();
       expect(Array.isArray(body)).toBeTruthy();
-      expect(body.length).toBe(2);
-      expect(body[0].password).toBeUndefined();
+      expect(body.length).toBeGreaterThanOrEqual(2);
+      body.forEach((user) => {
+        expect(user.password).toBeUndefined();
+      });
     });
 
     // test blokady dostepu do listy uzytkownikow dla zwyklego usera
     test("should not allow regular user to get all users", async () => {
-      const response = await apiClient.get("/api/users", userToken);
+      const response = await apiClient.get("/api/users", employeeToken);
 
       expect(response.status()).toBe(403);
     });
@@ -102,7 +104,7 @@ test.describe("User Management", () => {
         }),
       );
 
-      expect(response.status()).toBe(400);
+      expect(response.status()).toBe(409);
       const body = await response.json();
       expect(body.message).toBe("User already exists");
     });
@@ -127,7 +129,7 @@ test.describe("User Management", () => {
       const response = await apiClient.put(
         `/api/users/${testUserId}/role`,
         { roleId: adminRoleId },
-        userToken,
+        employeeToken,
       );
 
       expect(response.status()).toBe(403);

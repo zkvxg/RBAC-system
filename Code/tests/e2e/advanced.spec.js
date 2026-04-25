@@ -2,16 +2,17 @@ import { test, expect } from "@playwright/test";
 
 async function login(page, role = "admin") {
   const creds = {
-    admin: { email: "admin@example.com", password: "test123" },
-    manager: { email: "manager@example.com", password: "test123" },
-    employee: { email: "employee@example.com", password: "test123" },
+    admin: { email: "admin@test.com", password: "test123" },
+    manager: { email: "manager@test.com", password: "test123" },
+    employee: { email: "employee@test.com", password: "test123" },
   };
   const { email, password } = creds[role];
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByPlaceholder("Enter your password").fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/$/);
+  // wiekszy timeout zeby firefox/webkit zdazyly z realnym backendem
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20000 });
 }
 
 // test walidacji formularza uzytkownika i tworzenia nowego uzytkownika
@@ -34,7 +35,7 @@ test("user form validation and create user", async ({ page }) => {
 
   const uniqueName = `E2E User ${Date.now()}`;
   await page.getByLabel("Full Name").fill(uniqueName);
-  await page.getByLabel("Email").fill(`e2e+${Date.now()}@example.com`);
+  await page.getByLabel("Email").fill(`e2e+${Date.now()}@test.com`);
   await page.getByLabel("Role").selectOption({ label: "Admin" });
   await page.getByLabel("Department").selectOption({ label: "IT" });
   await page.getByLabel("Phone Number").fill("123456789");
@@ -59,11 +60,11 @@ test("employee cannot see admin-only navigation", async ({ page }) => {
 
   // sprawdzenie ze bezposrednie wejscie na chronione trasy przekierowuje na dashboard
   await page.goto("/users");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 
   await page.goto("/roles");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 
   await page.goto("/departments");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 });

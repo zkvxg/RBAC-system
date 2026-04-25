@@ -1,5 +1,10 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import {
   ChakraProvider,
   ColorModeScript,
@@ -11,6 +16,7 @@ import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import { authService } from "./services/authService";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 // lazy loading komponentow stron, laduja sie dopiero gdy sa potrzebne
@@ -113,6 +119,14 @@ const LoadingFallback = () => (
   </Center>
 );
 
+// niezalogowany na "/" -> /login, zalogowany -> /dashboard
+const RootRedirect = () => (
+  <Navigate
+    to={authService.isAuthenticated() ? "/dashboard" : "/login"}
+    replace
+  />
+);
+
 function App() {
   return (
     <>
@@ -121,6 +135,7 @@ function App() {
         <Router>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
+              <Route path="/" element={<RootRedirect />} />
               <Route path="/login" element={<Login />} />
 
               <Route
@@ -141,7 +156,7 @@ function App() {
                 <Route
                   path="/roles"
                   element={
-                    <ProtectedRoute allowedRoles={["Admin"]}>
+                    <ProtectedRoute allowedRoles={["Admin", "Manager"]}>
                       <Roles />
                     </ProtectedRoute>
                   }
@@ -164,7 +179,7 @@ function App() {
                   }
                 />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

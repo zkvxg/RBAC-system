@@ -114,7 +114,11 @@ function Header() {
   const navHoverBg = useColorModeValue("whiteAlpha.150", "whiteAlpha.150");
 
   const navigation = [
-    { name: "Dashboard", href: "/", roles: ["Admin", "Manager", "Employee"] },
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      roles: ["Admin", "Manager", "Employee"],
+    },
     { name: "Users", href: "/users", roles: ["Admin", "Manager"] },
     { name: "Roles", href: "/roles", roles: ["Admin"] },
     { name: "Analytics", href: "/analytics", roles: ["Admin", "Manager"] },

@@ -2,16 +2,41 @@ import { test, expect } from "@playwright/test";
 
 async function login(page, role = "admin") {
   const creds = {
-    admin: { email: "admin@example.com", password: "test123" },
-    manager: { email: "manager@example.com", password: "test123" },
-    employee: { email: "employee@example.com", password: "test123" },
+    admin: { email: "admin@test.com", password: "test123" },
+    manager: { email: "manager@test.com", password: "test123" },
+    employee: { email: "employee@test.com", password: "test123" },
   };
   const { email, password } = creds[role];
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByPlaceholder("Enter your password").fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/$/);
+  // wiekszy timeout zeby firefox/webkit zdazyly z realnym backendem
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20000 });
+}
+
+// tworzy uzytkownika przez ui i zwraca jego dane zeby testy nie ruszaly seedow
+async function createTestUser(page, suffix = Date.now()) {
+  const name = `E2E User ${suffix}`;
+  const email = `e2e-${suffix}@test.com`;
+  await page.goto("/users");
+  await page.getByRole("button", { name: /add user/i }).click();
+  await page.getByLabel("Full Name").fill(name);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Role").selectOption({ label: "Employee" });
+  await page.getByLabel("Department").selectOption({ label: "IT" });
+  await page.getByLabel("Phone Number").fill("123456789");
+  await page.getByLabel("Location").fill("Warsaw, Poland");
+  await page.getByRole("button", { name: /create user/i }).click();
+  await expect(page.getByText("User created successfully").first()).toBeVisible(
+    { timeout: 10000 },
+  );
+  return { name, email };
+}
+
+// znajduje wiersz tabeli zawierajacy podany email
+function userRow(page, email) {
+  return page.locator("tbody tr").filter({ hasText: email }).first();
 }
 
 // testy kompletnego workflow zarzadzania uzytkownikami od logowania do aktualizacji
@@ -51,9 +76,11 @@ test.describe("User Management Complete Workflow", () => {
     // klikniecie przycisku add user
     await page.getByRole("button", { name: /add user/i }).click();
 
+    // unikalne wartosci zeby test dzialal wielokrotnie na tej samej bazie
+    const ts = Date.now();
     // wypelnienie formularza (rzeczywiste pola: Full Name, Email, Role, Department, Phone Number, Location)
-    await page.getByLabel("Full Name").fill("Test User E2E");
-    await page.getByLabel("Email").fill("testuser-e2e@test.com");
+    await page.getByLabel("Full Name").fill(`Test User E2E ${ts}`);
+    await page.getByLabel("Email").fill(`testuser-e2e-${ts}@test.com`);
     await page.getByLabel("Role").selectOption({ label: "Admin" });
     await page.getByLabel("Department").selectOption({ label: "IT" });
     await page.getByLabel("Phone Number").fill("123456789");
@@ -66,48 +93,46 @@ test.describe("User Management Complete Workflow", () => {
     await expect(
       page.getByText("User created successfully").first(),
     ).toBeVisible({
-      timeout: 5000,
-    });
-  });
-
-  test("should edit existing user", async ({ page }) => {
-    await page.goto("/users");
-
-    // znalezienie pierwszego uzytkownika i klikniecie edit (aria-label: "Edit user")
-    const firstEditButton = page
-      .getByRole("button", { name: /edit user/i })
-      .first();
-    await firstEditButton.click();
-
-    // aktualizacja nazwy uzytkownika
-    const nameField = page.getByLabel("Full Name");
-    await nameField.clear();
-    await nameField.fill("Updated User Name");
-
-    // naprawienie telefonu jesli ma bledny format
-    const phoneField = page.getByLabel("Phone Number");
-    await phoneField.clear();
-    await phoneField.fill("123456789");
-
-    // zapisanie zmian
-    await page.getByRole("button", { name: /update user/i }).click();
-
-    // sprawdzenie czy zmiana zostala zapisana
-    await expect(
-      page.getByText("User updated successfully").first(),
-    ).toBeVisible({
       timeout: 10000,
     });
   });
 
-  test("should delete user", async ({ page }) => {
-    await page.goto("/users");
+  test("should edit existing user", async ({ page }) => {
+    // tworzymy wlasnego usera zeby nie ruszac seedow admin manager employee
+    const { email } = await createTestUser(page, `edit-${Date.now()}`);
 
-    // klikniecie przycisku delete (aria-label: "Delete user")
-    const deleteButton = page
+    // czekamy az wiersz pojawi sie w tabeli (lista mogla sie jeszcze odswiezac)
+    const row = userRow(page, email);
+    await expect(row).toBeVisible({ timeout: 15000 });
+
+    // edycja po wierszu zawierajacym nasz email
+    await row.getByRole("button", { name: /edit user/i }).click();
+
+    const nameField = page.getByLabel("Full Name");
+    await expect(nameField).toBeVisible({ timeout: 10000 });
+    await nameField.clear();
+    await nameField.fill("Updated User Name");
+
+    const phoneField = page.getByLabel("Phone Number");
+    await phoneField.clear();
+    await phoneField.fill("123456789");
+
+    await page.getByRole("button", { name: /update user/i }).click();
+
+    await expect(
+      page.getByText("User updated successfully").first(),
+    ).toBeVisible({
+      timeout: 15000,
+    });
+  });
+
+  test("should delete user", async ({ page }) => {
+    // tworzymy wlasnego usera do skasowania
+    const { email } = await createTestUser(page, `del-${Date.now()}`);
+
+    await userRow(page, email)
       .getByRole("button", { name: /delete user/i })
-      .first();
-    await deleteButton.click();
+      .click();
 
     // potwierdzenie w modalu (nie browser dialog)
     await expect(
@@ -115,7 +140,6 @@ test.describe("User Management Complete Workflow", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: "Delete" }).click();
 
-    // sprawdzenie czy uzytkownik zostal usuniety
     await expect(
       page.getByText("User deleted successfully").first(),
     ).toBeVisible({
@@ -124,37 +148,36 @@ test.describe("User Management Complete Workflow", () => {
   });
 
   test("should filter users by search", async ({ page }) => {
+    // tworzymy unikalnego usera i go wyszukujemy zeby test dzialal i na mockach i na seedach
+    const { name, email } = await createTestUser(page, `search-${Date.now()}`);
+
     await page.goto("/users");
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 20000 });
 
-    // wpisanie wyszukiwanej frazy
     const searchInput = page.getByPlaceholder(/search users/i);
-    await searchInput.fill("First");
+    await expect(searchInput).toBeVisible({ timeout: 10000 });
+    await searchInput.fill(name);
 
-    // sprawdzenie czy filtrowanie dziala
-    await expect(page.getByText(/first test-user/i)).toBeVisible();
+    await expect(userRow(page, email)).toBeVisible({ timeout: 15000 });
   });
 
   test("should change user role", async ({ page }) => {
-    await page.goto("/users");
+    // tworzymy wlasnego usera i mu zmieniamy role
+    const { email } = await createTestUser(page, `role-${Date.now()}`);
 
-    // znalezienie uzytkownika i otwarcie edycji
-    const editButton = page.getByRole("button", { name: /edit user/i }).first();
-    await editButton.click();
+    await userRow(page, email)
+      .getByRole("button", { name: /edit user/i })
+      .click();
 
-    // zmiana roli
     const roleSelect = page.getByLabel("Role");
     await roleSelect.selectOption({ label: "Manager" });
 
-    // naprawienie telefonu jesli ma bledny format
     const phoneField = page.getByLabel("Phone Number");
     await phoneField.clear();
     await phoneField.fill("123456789");
 
-    // zapisanie
     await page.getByRole("button", { name: /update user/i }).click();
 
-    // sprawdzenie czy aktualizacja sie powiodla
     await expect(
       page.getByText("User updated successfully").first(),
     ).toBeVisible({
@@ -231,7 +254,8 @@ test.describe("Role Management Workflow", () => {
 
     await page.getByRole("button", { name: /add role/i }).click();
 
-    await page.getByLabel("Role Name").fill("TestRole");
+    // unikalna nazwa zeby kolejne uruchomienia nie waliły sie na unique constraint
+    await page.getByLabel("Role Name").fill(`TestRole${Date.now()}`);
     await page.getByLabel("Description").fill("Test role for automation");
 
     await page.getByRole("button", { name: /create role/i }).click();
@@ -239,20 +263,26 @@ test.describe("Role Management Workflow", () => {
     await expect(
       page.getByText("Role created successfully").first(),
     ).toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
   });
 
   test("should edit role permissions", async ({ page }) => {
+    // tworzymy wlasna role zeby nie ruszac uprawnien admina
+    const roleName = `EditPerm${Date.now()}`;
     await page.goto("/roles");
+    await page.getByRole("button", { name: /add role/i }).click();
+    await page.getByLabel("Role Name").fill(roleName);
+    await page.getByLabel("Description").fill("role do testu uprawnien");
+    await page.getByRole("button", { name: /create role/i }).click();
+    await expect(
+      page.getByText("Role created successfully").first(),
+    ).toBeVisible({ timeout: 10000 });
 
-    // klikniecie przycisku "Edit permissions" (aria-label)
-    const permissionsButton = page
-      .getByRole("button", { name: /edit permissions/i })
-      .first();
-    await permissionsButton.click();
+    // znajdujemy wiersz nowej roli i klikamy edit permissions
+    const row = page.locator("tbody tr").filter({ hasText: roleName }).first();
+    await row.getByRole("button", { name: /edit permissions/i }).click();
 
-    // zaznaczenie uprawnienia za pomoca Select All
     await page
       .getByRole("button", { name: /select all/i })
       .first()
@@ -260,7 +290,6 @@ test.describe("Role Management Workflow", () => {
 
     await page.getByRole("button", { name: /save permissions/i }).click();
 
-    // sprawdzenie czy uprawnienia zostaly zapisane
     await expect(
       page.getByText("Permissions updated successfully").first(),
     ).toBeVisible({ timeout: 5000 });
@@ -289,9 +318,9 @@ test.describe("Role Management Workflow", () => {
       page.getByRole("columnheader", { name: /permissions/i }),
     ).toBeVisible();
 
-    // sprawdzenie czy sa wyswietlone uprawnienia w wierszach
+    // sprawdzenie czy sa wyswietlone uprawnienia w wierszach (dziala dla mockow .manage i seedow .view)
     await expect(
-      page.getByText(/users\.manage|roles\.manage/i).first(),
+      page.getByText(/users\.(manage|view)|roles\.(manage|view)/i).first(),
     ).toBeVisible();
   });
 });
@@ -318,10 +347,9 @@ test.describe("Authentication Edge Cases", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-
   test("should show error on invalid credentials", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Email").fill("wrong@example.com");
+    await page.getByLabel("Email").fill("wrong@test.com");
     await page.getByPlaceholder("Enter your password").fill("wrongpass");
     await page.getByRole("button", { name: /sign in/i }).click();
 

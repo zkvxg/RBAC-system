@@ -12,15 +12,35 @@ const authController = {
         return res.status(400).json({ message: "All fields are required" });
       }
 
+      if (typeof password !== "string" || password.length < 5) {
+        return res
+          .status(400)
+          .json({ message: "Password must be at least 5 characters long" });
+      }
+
+      if (typeof username !== "string" || username.trim().length < 3) {
+        return res
+          .status(400)
+          .json({ message: "Username must be at least 3 characters long" });
+      }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Invalid email format" });
       }
 
+      const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(409).json({ message: "User already exists" });
       }
 
+      const [defaultRole] = await Role.findOrCreate({
+        where: { name: "employee" },
+        defaults: {
+          description: "Default employee role",
+          permissions: ["profile.view"],
+        },
+      });
       if (!defaultRole) {
         return res.status(500).json({ message: "Default role not found" });
       }
@@ -65,9 +85,16 @@ const authController = {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      if (!user.Role) {
+        return res.status(500).json({ message: "User has no role assigned" });
+      }
+
       // generowanie tokenu jwt
+      const permissions = Array.isArray(user.Role.permissions)
+        ? user.Role.permissions
+        : [];
       const token = jwt.sign(
-        { userId: user.id, role: user.Role.name },
+        { userId: user.id, role: user.Role.name, permissions },
         process.env.JWT_SECRET,
         { expiresIn: "24h" },
       );
@@ -78,6 +105,7 @@ const authController = {
           id: user.id,
           username: user.username,
           role: user.Role.name,
+          permissions,
         },
       });
     } catch (error) {
@@ -97,6 +125,9 @@ const authController = {
         include: [{ model: Role }],
         attributes: { exclude: ["password"] },
       });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
       res.json(user);
     } catch (error) {
       res

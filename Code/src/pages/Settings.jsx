@@ -31,6 +31,7 @@ import {
 import { useState, useRef } from "react";
 import PageHeader from "../components/layout/PageHeader";
 import { authService } from "../services/authService";
+import { userService } from "../services/userService";
 import {
   UserIcon,
   BellIcon,
@@ -85,14 +86,32 @@ function Settings() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-      status: "success",
-      duration: 3000,
-    });
+    try {
+      const updated = await userService.updateUser(user.id, {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        location: formData.location,
+      });
+      const merged = { ...user, ...updated };
+      localStorage.setItem("user", JSON.stringify(merged));
+      window.dispatchEvent(new CustomEvent("user-updated", { detail: merged }));
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+        status: "success",
+        duration: 3000,
+      });
+    } catch (err) {
+      toast({
+        title: "Update failed",
+        description: err?.response?.data?.error || err.message,
+        status: "error",
+        duration: 4000,
+      });
+    }
   };
 
   const handlePasswordChange = (e) => {

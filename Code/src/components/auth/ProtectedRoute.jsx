@@ -24,7 +24,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   // sprawdzenie roli - jesli podano allowedRoles, a uzytkownik nie ma odpowiedniej roli, przekieruj na dashboard
   if (allowedRoles && !authService.hasRole(allowedRoles)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children || <Outlet />;
