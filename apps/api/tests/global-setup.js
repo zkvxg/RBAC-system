@@ -1,5 +1,4 @@
 const sequelize = require("../config/database");
-const { User, Role } = require("../models");
 const { seedAdminAndEmployee } = require("./utils/factories");
 const { seedDefaults } = require("../config/seed");
 

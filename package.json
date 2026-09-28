@@ -9,6 +9,12 @@
     "dev:api": "npm run start -w @rbac/api",
     "lint": "npm run lint --workspaces --if-present",
     "test:api": "npm run test -w @rbac/api",
-    "test:web": "npm run test:e2e -w @rbac/web"
+    "test:web": "npm run test:e2e -w @rbac/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^9.1.2",
+    "prettier": "^3.9.10"
   }
 }

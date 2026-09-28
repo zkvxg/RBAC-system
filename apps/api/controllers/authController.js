@@ -44,7 +44,7 @@ const authController = {
         return res.status(500).json({ message: "Default role not found" });
       }
 
-      const user = await User.create({
+      await User.create({
         username,
         email,
         password,

@@ -21,7 +21,7 @@ app.use((req, res, _next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });

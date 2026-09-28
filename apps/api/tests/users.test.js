@@ -12,7 +12,6 @@ test.describe("User Management", () => {
   let employeeToken;
   let testUserId;
   let adminRoleId;
-  let employeeRoleId;
 
   test.beforeAll(async () => {
     apiClient = await new PlaywrightApiClient().init();
@@ -22,9 +21,7 @@ test.describe("User Management", () => {
 
     const { Role } = require("../models");
     const adminRole = await Role.findOne({ where: { name: "admin" } });
-    const employeeRole = await Role.findOne({ where: { name: "employee" } });
     adminRoleId = adminRole.id;
-    employeeRoleId = employeeRole.id;
   });
 
   test.afterAll(async () => {
