@@ -9,20 +9,24 @@ https://zkvxg-rbac-system.vercel.app/
 ## Test Credentials
 
 **Admin**
+
 - email - admin@test.com
 - password - test123
 
 **Manager**
+
 - email - manager@test.com
 - password - test123
 
 **Employee**
+
 - email - employee@test.com 
 - password - test123
 
 ## Tech Stack
 
 **Frontend:**
+
 - React.js
 - Vite
 - Chakra UI
@@ -30,8 +34,9 @@ https://zkvxg-rbac-system.vercel.app/
 - Recharts
 - date-fns
 - React Router DOM
-  
+
 **Backend:**
+
 - Node.js
 - Express
 - Sequelize 
@@ -40,6 +45,7 @@ https://zkvxg-rbac-system.vercel.app/
 - bcrypt
 
 **Testing & DevOps:**
+
 - Playwright 
 - GitHub Actions 
 
