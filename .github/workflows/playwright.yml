@@ -30,7 +30,7 @@ jobs:
         run: npx -w @rbac/web playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
-        run: npm run test:e2e -w @rbac/web -- --update-snapshots
+        run: npm run test:e2e -w @rbac/web
 
       - name: Upload test results
         if: always()
