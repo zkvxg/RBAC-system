@@ -26,3 +26,6 @@ build/
 Thumbs.db
 
 .vercel
+
+*-snapshots/*-win32.png
+*-snapshots/*-darwin.png
