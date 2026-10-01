@@ -1,7 +1,7 @@
 const { request } = require("@playwright/test");
 
 class PlaywrightApiClient {
-  constructor(baseURL = "http://localhost:5000") {
+  constructor(baseURL = `http://localhost:${process.env.TEST_PORT}`) {
     this.baseURL = baseURL;
     this.context = null;
   }

@@ -2,6 +2,7 @@ const { defineConfig } = require("@playwright/test");
 
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
+process.env.TEST_PORT = process.env.TEST_PORT || "5050";
 
 module.exports = defineConfig({
   testDir: "./tests",
@@ -15,7 +16,7 @@ module.exports = defineConfig({
     ["list"],
   ],
   use: {
-    baseURL: "http://localhost:5000",
+    baseURL: `http://localhost:${process.env.TEST_PORT}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
