@@ -10,7 +10,6 @@ import {
   Td,
   IconButton,
   Badge,
-  Heading,
   HStack,
   useDisclosure,
   Flex,
@@ -40,7 +39,6 @@ import {
 import Modal from "../components/common/Modal";
 import DepartmentForm from "../components/departments/DepartmentForm";
 import { departmentService } from "../services/departmentService";
-import PageHeader from "../components/layout/PageHeader";
 
 function Departments() {
   const [departments, setDepartments] = useState([]);
@@ -62,6 +60,10 @@ function Departments() {
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headerBg = useColorModeValue("rbac-system.800", "rbac-system.900");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.700)",
+    "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.800)",
+  );
   const borderColor = useColorModeValue("gray.200", "gray.600");
 
   const [filters, setFilters] = useState({
@@ -371,13 +373,7 @@ function Departments() {
       {displayMode === "desktop" ? (
         <Box overflowX="auto">
           <Table>
-            <Thead
-              bg={headerBg}
-              bgGradient={useColorModeValue(
-                "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.700)",
-                "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.800)",
-              )}
-            >
+            <Thead bg={headerBg} bgGradient={headerGradient}>
               <Tr>
                 <Th borderColor={borderColor} color="white">
                   Department

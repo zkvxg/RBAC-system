@@ -9,9 +9,7 @@ import {
   MenuItem,
   Text,
   HStack,
-  useColorMode,
   useColorModeValue,
-  Tooltip,
   Divider,
   Popover,
   PopoverTrigger,
@@ -22,25 +20,16 @@ import {
   Stack,
   Circle,
 } from "@chakra-ui/react";
-import {
-  BellIcon,
-  MoonIcon,
-  SunIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  ArrowLeftOnRectangleIcon,
-} from "@heroicons/react/24/outline";
+import { BellIcon, UserIcon } from "@heroicons/react/24/outline";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import { authService } from "../../services/authService";
 
 function Header() {
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
-  const { colorMode, toggleColorMode } = useColorMode();
 
   const bgColor = useColorModeValue("rbac-system.800", "rbac-system.900");
   const borderColor = useColorModeValue("whiteAlpha.300", "whiteAlpha.300");
-  const activeItemBg = useColorModeValue("rbac-system.700", "rbac-system.800");
   const hoverBg = useColorModeValue("rbac-system.700", "rbac-system.800");
   const notificationBg = useColorModeValue("white", "rbac-system.900");
 
@@ -52,8 +41,6 @@ function Header() {
     "rbac-system.800",
   );
   const menuTextColor = useColorModeValue("gray.700", "gray.200");
-  const iconBg = useColorModeValue("rbac-system.50", "whiteAlpha.100");
-  const iconColor = useColorModeValue("rbac-system.500", "whiteAlpha.900");
 
   const handleLogout = () => {
     authService.logout();

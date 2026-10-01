@@ -1,11 +1,8 @@
 import {
   Box,
-  Card,
-  CardBody,
   Stack,
   Switch,
   Text,
-  useColorMode,
   useColorModeValue,
   VStack,
   FormControl,
@@ -18,7 +15,6 @@ import {
   useToast,
   SimpleGrid,
   Icon,
-  Badge,
   Tabs,
   TabList,
   TabPanels,
@@ -29,21 +25,17 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useState, useRef } from "react";
-import PageHeader from "../components/layout/PageHeader";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import {
   UserIcon,
   BellIcon,
   ShieldCheckIcon,
-  PaintBrushIcon,
-  KeyIcon,
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 
 function Settings() {
-  const { colorMode, toggleColorMode } = useColorMode();
   const user = authService.getCurrentUser();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -62,7 +54,6 @@ function Settings() {
     },
   });
 
-  const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const toast = useToast();
   const fileInputRef = useRef(null);

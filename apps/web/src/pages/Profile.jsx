@@ -24,7 +24,6 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import { authService } from "../services/authService";
-import PageHeader from "../components/layout/PageHeader";
 import { format } from "date-fns";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -81,7 +80,6 @@ function Profile() {
   }, []);
 
   const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
   const textColor = useColorModeValue("gray.600", "gray.300");
 
   const formatDate = (dateString) => {

@@ -10,7 +10,6 @@ import {
   Td,
   IconButton,
   Badge,
-  Heading,
   HStack,
   VStack,
   useDisclosure,
@@ -44,7 +43,6 @@ import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
-import PageHeader from "../components/layout/PageHeader";
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -66,6 +64,10 @@ function Users() {
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headerBg = useColorModeValue("rbac-system.800", "rbac-system.900");
+  const headerGradient = useColorModeValue(
+    "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.700)",
+    "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.800)",
+  );
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const userIconBg = useColorModeValue("rbac-system.600", "rbac-system.800");
   const userIconGradient = useColorModeValue(
@@ -407,13 +409,7 @@ function Users() {
       {displayMode === "desktop" ? (
         <Box overflowX="auto">
           <Table>
-            <Thead
-              bg={headerBg}
-              bgGradient={useColorModeValue(
-                "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.700)",
-                "linear(to-r, rbac-system.900, rbac-system.800, rbac-system.800)",
-              )}
-            >
+            <Thead bg={headerBg} bgGradient={headerGradient}>
               <Tr>
                 <Th borderColor={borderColor} color="white">
                   User ID

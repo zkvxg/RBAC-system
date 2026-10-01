@@ -110,6 +110,7 @@ RoleForm.propTypes = {
     name: PropTypes.string,
     description: PropTypes.string,
     permissions: PropTypes.arrayOf(PropTypes.string),
+    status: PropTypes.string,
   }),
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,

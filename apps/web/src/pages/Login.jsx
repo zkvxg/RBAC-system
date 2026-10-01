@@ -14,46 +14,19 @@ import {
   Text,
   HStack,
   Badge,
-  Collapse,
   IconButton,
-  useDisclosure,
   useToast,
   InputGroup,
   InputRightElement,
   Divider,
-  Textarea,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
-import {
-  InformationCircleIcon,
-  XMarkIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  MoonIcon as HeroMoonIcon,
-  SunIcon as HeroSunIcon,
-} from "@heroicons/react/24/outline";
-import { useColorMode } from "@chakra-ui/react";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 function Login() {
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("rbac-system.700", "rbac-system.600");
-  const textColor = useColorModeValue("gray.600", "gray.400");
-  const demoButtonBg = useColorModeValue(
-    "rbac-system.50",
-    "rgba(0, 0, 0, 0.3)",
-  );
-  const demoButtonColor = useColorModeValue(
-    "rbac-system.600",
-    "rbac-system.200",
-  );
-  const alertBg = useColorModeValue("rbac-system.50", "rgba(0, 0, 0, 0.3)");
-  const alertColor = useColorModeValue("rbac-system.700", "gray.300");
-  const alertIconColor = useColorModeValue(
-    "rbac-system.500",
-    "rbac-system.200",
-  );
+  const credentialTextColor = useColorModeValue("gray.700", "gray.300");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +35,6 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
-  const { colorMode, toggleColorMode } = useColorMode();
 
   const testCredentials = [
     {
@@ -107,14 +79,6 @@ function Login() {
       setIsLoading(false);
     }
   };
-
-  const rightSideGradient = `
-    radial-gradient(49% 81% at 45% 47%, rgba(43, 64, 102, 0.35) 0%, rgba(17, 26, 51, 0) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(58, 85, 144, 0.9) 1%, rgba(17, 26, 51, 0) 99%),
-    radial-gradient(142% 91% at 83% 7%, rgba(79, 111, 178, 0.75) 1%, rgba(17, 26, 51, 0) 99%),
-    radial-gradient(142% 91% at -6% 74%, rgba(32, 50, 88, 1) 1%, rgba(17, 26, 51, 0) 99%),
-    radial-gradient(142% 91% at 111% 84%, rgba(58, 85, 144, 0.8) 0%, rgba(17, 26, 51, 1) 100%)
-  `;
 
   return (
     <Box
@@ -223,7 +187,7 @@ function Login() {
                       >
                         {cred.role}
                       </Badge>
-                      <Text color={useColorModeValue("gray.700", "gray.300")}>
+                      <Text color={credentialTextColor}>
                         {cred.email} / {cred.password}
                       </Text>
                     </HStack>

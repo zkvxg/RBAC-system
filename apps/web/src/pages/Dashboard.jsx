@@ -27,7 +27,7 @@ import {
   latestUpdatesData,
 } from "../mocks/dashboardMock";
 
-function StatCard({ title, stat, icon, trend, helpText, color }) {
+function StatCard({ title, stat, icon, trend, helpText }) {
   const bgColor = useColorModeValue("white", "gray.800");
   const iconBg = useColorModeValue("rbac-system.600", "rbac-system.800");
   const iconGradient = useColorModeValue(
@@ -86,7 +86,6 @@ StatCard.propTypes = {
 };
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
   const bgColor = useColorModeValue("white", "gray.800");
 
   return (
