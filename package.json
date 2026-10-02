@@ -22,18 +22,6 @@
     "lint-staged": "^15.5.2",
     "prettier": "^3.9.10"
   },
-  "lint-staged": {
-    "apps/api/**/*.js": [
-      "eslint --config apps/api/eslint.config.js",
-      "prettier --write"
-    ],
-    "apps/web/**/*.{js,jsx}": [
-      "prettier --write"
-    ],
-    "*.{json,md,yml,css}": [
-      "prettier --write"
-    ]
-  },
   "engines": {
     "node": ">=20"
   }
