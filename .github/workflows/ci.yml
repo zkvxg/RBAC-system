@@ -28,3 +28,26 @@ jobs:
       - run: npm run lint
 
       - run: npm run format:check
+
+  test-api:
+    name: API tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run test:api
+
+      - name: Upload API test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-api-report
+          path: apps/api/playwright-report/
+          retention-days: 14
