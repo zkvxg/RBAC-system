@@ -54,3 +54,36 @@ jobs:
           name: playwright-api-report
           path: apps/api/playwright-report/
           retention-days: 14
+
+  test-e2e:
+    name: E2E (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(github.event_name == 'pull_request' && '["chromium"]' || '["chromium","firefox","webkit"]') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browser
+        run: npx -w @rbac/web playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run E2E tests
+        run: npm run test:e2e -w @rbac/web -- --project=${{ matrix.browser }}
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-report-${{ matrix.browser }}
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 14
