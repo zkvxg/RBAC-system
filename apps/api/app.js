@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 require("dotenv").config();
 
 const sequelize = require("./config/database");
@@ -10,8 +11,20 @@ const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+const DEFAULT_CORS_ORIGINS = ["http://localhost:5173"];
+
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+  : DEFAULT_CORS_ORIGINS;
+
+app.use(helmet());
+app.use(
+  cors({
+    origin: (origin, callback) =>
+      callback(null, !origin || allowedOrigins.includes(origin)),
+  }),
+);
+app.use(express.json({ limit: "100kb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/roles", roleRoutes);
