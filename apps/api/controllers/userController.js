@@ -11,9 +11,8 @@ const userController = {
       });
       res.json(users);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error fetching users", error: error.message });
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Error fetching users" });
     }
   },
 
@@ -85,9 +84,8 @@ const userController = {
       });
       res.status(201).json(created);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error creating user", error: error.message });
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Error creating user" });
     }
   },
 
@@ -125,9 +123,8 @@ const userController = {
       });
       res.json(updated);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error updating user", error: error.message });
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Error updating user" });
     }
   },
 
@@ -141,9 +138,8 @@ const userController = {
       await user.destroy();
       res.json({ message: "User deleted successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error deleting user", error: error.message });
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Error deleting user" });
     }
   },
 
@@ -169,9 +165,8 @@ const userController = {
       await user.update({ RoleId: roleId });
       res.json({ message: "User role updated successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error updating user role", error: error.message });
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Error updating user role" });
     }
   },
 };

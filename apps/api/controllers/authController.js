@@ -53,9 +53,8 @@ const authController = {
 
       res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error registering user", error: error.message });
+      console.error("Error registering user:", error);
+      res.status(500).json({ message: "Error registering user" });
     }
   },
 
@@ -106,9 +105,8 @@ const authController = {
         },
       });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error logging in", error: error.message });
+      console.error("Error logging in:", error);
+      res.status(500).json({ message: "Error logging in" });
     }
   },
 
@@ -127,9 +125,8 @@ const authController = {
       }
       res.json(user);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error fetching profile", error: error.message });
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Error fetching profile" });
     }
   },
 };

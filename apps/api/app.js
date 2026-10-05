@@ -35,6 +35,10 @@ app.use((req, res, _next) => {
 });
 
 app.use((err, req, res, _next) => {
+  const status = err.status || err.statusCode || 500;
+  if (status < 500) {
+    return res.status(status).json({ message: err.message });
+  }
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });

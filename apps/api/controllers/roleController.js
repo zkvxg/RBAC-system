@@ -6,9 +6,8 @@ const roleController = {
       const roles = await Role.findAll();
       res.json(roles);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error fetching roles", error: error.message });
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ message: "Error fetching roles" });
     }
   },
 
@@ -36,9 +35,8 @@ const roleController = {
       const role = await Role.create({ name, permissions, description });
       res.status(201).json(role);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error creating role", error: error.message });
+      console.error("Error creating role:", error);
+      res.status(500).json({ message: "Error creating role" });
     }
   },
 
@@ -59,9 +57,8 @@ const roleController = {
       await role.update({ name, permissions, description });
       res.json(role);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error updating role", error: error.message });
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Error updating role" });
     }
   },
 
@@ -81,9 +78,8 @@ const roleController = {
       await role.destroy();
       res.json({ message: "Role deleted successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error deleting role", error: error.message });
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Error deleting role" });
     }
   },
 };
