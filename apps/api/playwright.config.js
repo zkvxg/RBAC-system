@@ -3,6 +3,7 @@ const { defineConfig } = require("@playwright/test");
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 process.env.TEST_PORT = process.env.TEST_PORT || "5050";
+process.env.AUTH_RATE_LIMIT_MAX = process.env.AUTH_RATE_LIMIT_MAX || "1000";
 
 module.exports = defineConfig({
   testDir: "./tests",
