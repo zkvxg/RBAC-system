@@ -1,6 +1,7 @@
 const { User, Role } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { validatePassword } = require("../utils/passwordPolicy");
 
 const authController = {
   async register(req, res) {
@@ -11,10 +12,9 @@ const authController = {
         return res.status(400).json({ message: "All fields are required" });
       }
 
-      if (typeof password !== "string" || password.length < 5) {
-        return res
-          .status(400)
-          .json({ message: "Password must be at least 5 characters long" });
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        return res.status(400).json({ message: passwordError });
       }
 
       if (typeof username !== "string" || username.trim().length < 3) {
