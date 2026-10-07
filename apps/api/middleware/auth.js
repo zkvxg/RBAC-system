@@ -1,19 +1,35 @@
 const jwt = require("jsonwebtoken");
+const { User } = require("../models");
 
 const auth = {
-  validateToken(req, res, next) {
+  async validateToken(req, res, next) {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
 
+    let decoded;
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    try {
+      const user = await User.findByPk(decoded.userId, {
+        attributes: ["id", "isActive"],
+      });
+      if (!user) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      if (!user.isActive) {
+        return res.status(403).json({ message: "Account is disabled" });
+      }
       req.user = decoded;
       next();
     } catch (error) {
-      res.status(401).json({ message: "Invalid token" });
+      next(error);
     }
   },
 

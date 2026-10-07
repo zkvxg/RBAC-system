@@ -82,6 +82,10 @@ const authController = {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      if (!user.isActive) {
+        return res.status(403).json({ message: "Account is disabled" });
+      }
+
       if (!user.Role) {
         return res.status(500).json({ message: "User has no role assigned" });
       }
