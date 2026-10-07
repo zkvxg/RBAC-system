@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { User, Role } = require("../models");
 
 const auth = {
   async validateToken(req, res, next) {
@@ -17,8 +17,9 @@ const auth = {
     }
 
     try {
-      const user = await User.findByPk(decoded.userId, {
+      const user = await User.findByPk(decoded.sub, {
         attributes: ["id", "isActive"],
+        include: [{ model: Role, attributes: ["name", "permissions"] }],
       });
       if (!user) {
         return res.status(401).json({ message: "Invalid token" });
@@ -26,7 +27,13 @@ const auth = {
       if (!user.isActive) {
         return res.status(403).json({ message: "Account is disabled" });
       }
-      req.user = decoded;
+      req.user = {
+        userId: user.id,
+        role: user.Role?.name ?? null,
+        permissions: Array.isArray(user.Role?.permissions)
+          ? user.Role.permissions
+          : [],
+      };
       next();
     } catch (error) {
       next(error);

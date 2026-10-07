@@ -142,11 +142,9 @@ test.describe("Authentication System", () => {
     });
 
     test("should reject expired token", async () => {
-      const expiredToken = jwt.sign(
-        { userId: 1, role: "employee" },
-        process.env.JWT_SECRET,
-        { expiresIn: "0s" },
-      );
+      const expiredToken = jwt.sign({ sub: 1 }, process.env.JWT_SECRET, {
+        expiresIn: "0s",
+      });
 
       const response = await apiClient.get("/api/auth/profile", expiredToken);
 

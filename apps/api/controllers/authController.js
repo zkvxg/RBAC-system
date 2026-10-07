@@ -93,11 +93,9 @@ const authController = {
       const permissions = Array.isArray(user.Role.permissions)
         ? user.Role.permissions
         : [];
-      const token = jwt.sign(
-        { userId: user.id, role: user.Role.name, permissions },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" },
-      );
+      const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+      });
 
       res.json({
         token,

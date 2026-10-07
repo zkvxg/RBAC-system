@@ -51,25 +51,10 @@ const seedAdminAndEmployee = async () => {
     });
   }
 
-  const adminPerms = Array.isArray(adminRole.permissions)
-    ? adminRole.permissions
-    : [];
-  const employeePerms = Array.isArray(employeeRole.permissions)
-    ? employeeRole.permissions
-    : [];
-  const adminToken = jwt.sign(
-    { userId: adminUser.id, role: "admin", permissions: adminPerms },
-    process.env.JWT_SECRET,
-  );
-
-  const employeeToken = jwt.sign(
-    {
-      userId: employeeUser.id,
-      role: "employee",
-      permissions: employeePerms,
-    },
-    process.env.JWT_SECRET,
-  );
+  const { adminToken, employeeToken } = createTokens({
+    adminUser,
+    employeeUser,
+  });
 
   return {
     adminRole,
@@ -81,15 +66,11 @@ const seedAdminAndEmployee = async () => {
   };
 };
 
+const signToken = (user) => jwt.sign({ sub: user.id }, process.env.JWT_SECRET);
+
 const createTokens = ({ adminUser, employeeUser }) => ({
-  adminToken: jwt.sign(
-    { userId: adminUser.id, role: "admin", permissions: [] },
-    process.env.JWT_SECRET,
-  ),
-  employeeToken: jwt.sign(
-    { userId: employeeUser.id, role: "employee", permissions: [] },
-    process.env.JWT_SECRET,
-  ),
+  adminToken: signToken(adminUser),
+  employeeToken: signToken(employeeUser),
 });
 
 module.exports = {
