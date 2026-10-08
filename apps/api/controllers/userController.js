@@ -1,7 +1,28 @@
+const { Op } = require("sequelize");
 const { User, Role } = require("../models");
 const { validatePassword } = require("../utils/passwordPolicy");
+const { isSuperuserRole } = require("../config/permissions");
 
 const PUBLIC_ATTRS = { exclude: ["password"] };
+
+const LAST_SUPERUSER_MESSAGE = "Cannot remove the last active administrator";
+
+async function isLastActiveSuperuser(user) {
+  if (!user.isActive) return false;
+  const roles = await Role.findAll({ attributes: ["id", "permissions"] });
+  const superuserRoleIds = roles.filter(isSuperuserRole).map((r) => r.id);
+  if (!superuserRoleIds.includes(user.RoleId)) return false;
+  const others = await User.count({
+    where: {
+      id: { [Op.ne]: user.id },
+      isActive: true,
+      RoleId: superuserRoleIds,
+    },
+  });
+  return others === 0;
+}
+
+const isSelf = (req, id) => String(req.user.userId) === String(id);
 
 const userController = {
   async getAllUsers(req, res) {
@@ -100,6 +121,17 @@ const userController = {
         return res.status(404).json({ message: "User not found" });
       }
 
+      if (isActive === false && user.isActive) {
+        if (isSelf(req, id)) {
+          return res
+            .status(400)
+            .json({ message: "You cannot deactivate your own account" });
+        }
+        if (await isLastActiveSuperuser(user)) {
+          return res.status(409).json({ message: LAST_SUPERUSER_MESSAGE });
+        }
+      }
+
       if (email && email !== user.email) {
         const existing = await User.findOne({ where: { email } });
         if (existing) {
@@ -131,9 +163,17 @@ const userController = {
   async deleteUser(req, res) {
     try {
       const { id } = req.params;
+      if (isSelf(req, id)) {
+        return res
+          .status(400)
+          .json({ message: "You cannot delete your own account" });
+      }
       const user = await User.findByPk(id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+      if (await isLastActiveSuperuser(user)) {
+        return res.status(409).json({ message: LAST_SUPERUSER_MESSAGE });
       }
       await user.destroy();
       res.json({ message: "User deleted successfully" });
@@ -160,6 +200,10 @@ const userController = {
       const role = await Role.findByPk(roleId);
       if (!role) {
         return res.status(404).json({ message: "Role not found" });
+      }
+
+      if (!isSuperuserRole(role) && (await isLastActiveSuperuser(user))) {
+        return res.status(409).json({ message: LAST_SUPERUSER_MESSAGE });
       }
 
       await user.update({ RoleId: roleId });
