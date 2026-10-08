@@ -1,24 +1,11 @@
 const { User, Role } = require("../models");
+const { WILDCARD } = require("./permissions");
 
 const ROLES = [
   {
     name: "admin",
     description: "Administrator",
-    permissions: [
-      "users.view",
-      "users.create",
-      "users.edit",
-      "users.delete",
-      "roles.view",
-      "roles.create",
-      "roles.edit",
-      "roles.delete",
-      "reports.view",
-      "reports.create",
-      "reports.export",
-      "profile.view",
-      "profile.edit",
-    ],
+    permissions: [WILDCARD],
   },
   {
     name: "manager",
@@ -82,6 +69,9 @@ async function seedDefaults() {
         permissions: r.permissions,
       },
     });
+    if (r.name === "admin" && !role.permissions.includes(WILDCARD)) {
+      await role.update({ permissions: r.permissions });
+    }
     rolesByName[r.name] = role;
   }
 

@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { User, Role } = require("../models");
+const { hasPermission } = require("../config/permissions");
 
 const auth = {
   async validateToken(req, res, next) {
@@ -40,27 +41,12 @@ const auth = {
     }
   },
 
-  requireAdmin(req, res, next) {
-    if (!req.user || req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Access denied. Admin privileges required." });
-    }
-    next();
-  },
-
   requirePermission(permission) {
     return (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      if (req.user.role === "admin") {
-        return next();
-      }
-      const perms = Array.isArray(req.user.permissions)
-        ? req.user.permissions
-        : [];
-      if (!perms.includes(permission)) {
+      if (!hasPermission(req.user.permissions, permission)) {
         return res
           .status(403)
           .json({ message: `Missing permission: ${permission}` });

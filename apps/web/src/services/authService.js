@@ -75,7 +75,7 @@ class AuthService {
     if (!user) return false;
     if (user.role === "Admin" || user.role === "admin") return true;
     const perms = Array.isArray(user.permissions) ? user.permissions : [];
-    return perms.includes(permission);
+    return perms.includes("*") || perms.includes(permission);
   }
 }
 
