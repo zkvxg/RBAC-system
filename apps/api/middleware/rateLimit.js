@@ -1,10 +1,11 @@
 const rateLimit = require("express-rate-limit");
+const env = require("../config/env");
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 
 const createAuthLimiter = ({
   windowMs = FIFTEEN_MINUTES,
-  max = Number(process.env.AUTH_RATE_LIMIT_MAX) || 10,
+  max = env.AUTH_RATE_LIMIT_MAX,
 } = {}) =>
   rateLimit({
     windowMs,

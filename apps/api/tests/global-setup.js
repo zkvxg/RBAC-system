@@ -8,8 +8,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 const { startServer } = require("../app");
 
 module.exports = async () => {
-  process.env.PORT = process.env.TEST_PORT;
-  global.__SERVER__ = await startServer();
+  global.__SERVER__ = await startServer({ port: process.env.TEST_PORT });
 
   await sequelize.sync({ force: true });
 

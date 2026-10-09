@@ -1,6 +1,7 @@
 const { User, Role } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const env = require("../config/env");
 const { validatePassword } = require("../utils/passwordPolicy");
 
 const authController = {
@@ -93,8 +94,8 @@ const authController = {
       const permissions = Array.isArray(user.Role.permissions)
         ? user.Role.permissions
         : [];
-      const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+      const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, {
+        expiresIn: env.JWT_EXPIRES_IN,
       });
 
       res.json({

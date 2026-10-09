@@ -1,0 +1,40 @@
+require("dotenv").config();
+const { z } = require("zod");
+
+const schema = z
+  .object({
+    NODE_ENV: z
+      .enum(["development", "production", "test"])
+      .default("development"),
+    PORT: z.coerce.number().int().positive().default(5000),
+    JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
+    JWT_EXPIRES_IN: z.string().default("24h"),
+    CORS_ORIGINS: z
+      .string()
+      .default("http://localhost:5173")
+      .transform((value) =>
+        value
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ),
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  })
+  .refine(
+    (env) => env.NODE_ENV !== "production" || env.JWT_SECRET.length >= 32,
+    {
+      message: "JWT_SECRET must be at least 32 characters in production",
+      path: ["JWT_SECRET"],
+    },
+  );
+
+const parsed = schema.safeParse(process.env);
+
+if (!parsed.success) {
+  const issues = parsed.error.issues
+    .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
+    .join("\n");
+  throw new Error(`Invalid environment configuration:\n${issues}`);
+}
+
+module.exports = Object.freeze(parsed.data);

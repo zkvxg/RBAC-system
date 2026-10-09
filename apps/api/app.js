@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-require("dotenv").config();
+const env = require("./config/env");
 
 const sequelize = require("./config/database");
 const { seedDefaults } = require("./config/seed");
@@ -11,17 +11,11 @@ const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
-const DEFAULT_CORS_ORIGINS = ["http://localhost:5173"];
-
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
-  : DEFAULT_CORS_ORIGINS;
-
 app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) =>
-      callback(null, !origin || allowedOrigins.includes(origin)),
+      callback(null, !origin || env.CORS_ORIGINS.includes(origin)),
   }),
 );
 app.use(express.json({ limit: "100kb" }));
@@ -45,24 +39,19 @@ app.use((err, req, res, _next) => {
 
 let server;
 
-const startServer = async () => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET environment variable is required");
-  }
-
-  if (process.env.NODE_ENV !== "test") {
+const startServer = async ({ port = env.PORT } = {}) => {
+  if (env.NODE_ENV !== "test") {
     await sequelize.sync();
     await seedDefaults();
   }
 
-  const PORT = process.env.PORT || 5000;
-  server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
   });
   return server;
 };
 
-if (process.env.NODE_ENV !== "test") {
+if (env.NODE_ENV !== "test") {
   startServer().catch((err) => console.error("Server start error:", err));
 }
 

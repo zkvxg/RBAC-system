@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const env = require("../config/env");
 const { User, Role } = require("../models");
 const { hasPermission } = require("../config/permissions");
 
@@ -12,7 +13,7 @@ const auth = {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, env.JWT_SECRET);
     } catch {
       return res.status(401).json({ message: "Invalid token" });
     }
