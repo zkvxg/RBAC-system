@@ -8,6 +8,7 @@ const { seedDefaults } = require("./config/seed");
 const authRoutes = require("./routes/authRoutes");
 const roleRoutes = require("./routes/roleRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -24,18 +25,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
 
-app.use((req, res, _next) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-app.use((err, req, res, _next) => {
-  const status = err.status || err.statusCode || 500;
-  if (status < 500) {
-    return res.status(status).json({ message: err.message });
-  }
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 let server;
 
