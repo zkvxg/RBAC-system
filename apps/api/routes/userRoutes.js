@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { asyncHandler } = require("../utils/asyncHandler");
 const userController = require("../controllers/userController");
 const { validateToken, requirePermission } = require("../middleware/auth");
 
@@ -7,31 +8,31 @@ router.get(
   "/",
   validateToken,
   requirePermission("users.view"),
-  userController.getAllUsers,
+  asyncHandler(userController.getAllUsers),
 );
 router.post(
   "/",
   validateToken,
   requirePermission("users.create"),
-  userController.createUser,
+  asyncHandler(userController.createUser),
 );
 router.put(
   "/:id",
   validateToken,
   requirePermission("users.edit"),
-  userController.updateUser,
+  asyncHandler(userController.updateUser),
 );
 router.delete(
   "/:id",
   validateToken,
   requirePermission("users.delete"),
-  userController.deleteUser,
+  asyncHandler(userController.deleteUser),
 );
 router.put(
   "/:id/role",
   validateToken,
   requirePermission("users.edit"),
-  userController.updateUserRole,
+  asyncHandler(userController.updateUserRole),
 );
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { asyncHandler } = require("../utils/asyncHandler");
 const roleController = require("../controllers/roleController");
 const { validateToken, requirePermission } = require("../middleware/auth");
 
@@ -7,25 +8,25 @@ router.get(
   "/",
   validateToken,
   requirePermission("roles.view"),
-  roleController.getAllRoles,
+  asyncHandler(roleController.getAllRoles),
 );
 router.post(
   "/",
   validateToken,
   requirePermission("roles.create"),
-  roleController.createRole,
+  asyncHandler(roleController.createRole),
 );
 router.put(
   "/:id",
   validateToken,
   requirePermission("roles.edit"),
-  roleController.updateRole,
+  asyncHandler(roleController.updateRole),
 );
 router.delete(
   "/:id",
   validateToken,
   requirePermission("roles.delete"),
-  roleController.deleteRole,
+  asyncHandler(roleController.deleteRole),
 );
 
 module.exports = router;
