@@ -2,31 +2,10 @@ const { User, Role } = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const env = require("../config/env");
-const { validatePassword } = require("../utils/passwordPolicy");
 
 const authController = {
   async register(req, res) {
     const { username, email, password } = req.body;
-
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      return res.status(400).json({ message: passwordError });
-    }
-
-    if (typeof username !== "string" || username.trim().length < 3) {
-      return res
-        .status(400)
-        .json({ message: "Username must be at least 3 characters long" });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -56,12 +35,6 @@ const authController = {
 
   async login(req, res) {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
 
     const user = await User.findOne({
       where: { email },

@@ -19,16 +19,6 @@ const roleController = {
   async createRole(req, res) {
     const { name, permissions, description } = req.body;
 
-    if (!name || !description || permissions === undefined) {
-      return res
-        .status(400)
-        .json({ message: "name, description and permissions are required" });
-    }
-
-    if (!Array.isArray(permissions)) {
-      return res.status(400).json({ message: "permissions must be an array" });
-    }
-
     if (grantsWildcardWithoutRight(req, permissions)) {
       return res
         .status(403)

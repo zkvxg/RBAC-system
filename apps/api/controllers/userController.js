@@ -1,6 +1,5 @@
 const { Op } = require("sequelize");
 const { User, Role } = require("../models");
-const { validatePassword } = require("../utils/passwordPolicy");
 const { isSuperuserRole } = require("../config/permissions");
 
 const PUBLIC_ATTRS = { exclude: ["password"] };
@@ -47,17 +46,6 @@ const userController = {
       roleName,
     } = req.body;
 
-    if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "username, email and password are required" });
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      return res.status(400).json({ message: passwordError });
-    }
-
     const existing = await User.findOne({ where: { email } });
     if (existing) {
       return res.status(409).json({ message: "User already exists" });
@@ -68,7 +56,7 @@ const userController = {
       role = await Role.findByPk(roleId);
     } else if (roleName) {
       role = await Role.findOne({
-        where: { name: String(roleName).toLowerCase() },
+        where: { name: roleName },
       });
     }
     if (!role) {
@@ -166,10 +154,6 @@ const userController = {
   async updateUserRole(req, res) {
     const { id } = req.params;
     const { roleId } = req.body;
-
-    if (!roleId) {
-      return res.status(400).json({ message: "roleId is required" });
-    }
 
     const user = await User.findByPk(id);
     if (!user) {

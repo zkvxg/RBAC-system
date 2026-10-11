@@ -3,35 +3,38 @@ const router = express.Router();
 const { asyncHandler } = require("../utils/asyncHandler");
 const userController = require("../controllers/userController");
 const { validateToken, requirePermission } = require("../middleware/auth");
+const { validate } = require("../middleware/validate");
+const schemas = require("../validation/userSchemas");
+
+router.use(validateToken);
 
 router.get(
   "/",
-  validateToken,
   requirePermission("users.view"),
   asyncHandler(userController.getAllUsers),
 );
 router.post(
   "/",
-  validateToken,
   requirePermission("users.create"),
+  validate(schemas.createUser),
   asyncHandler(userController.createUser),
 );
 router.put(
   "/:id",
-  validateToken,
   requirePermission("users.edit"),
+  validate(schemas.updateUser),
   asyncHandler(userController.updateUser),
 );
 router.delete(
   "/:id",
-  validateToken,
   requirePermission("users.delete"),
+  validate(schemas.userId),
   asyncHandler(userController.deleteUser),
 );
 router.put(
   "/:id/role",
-  validateToken,
   requirePermission("users.edit"),
+  validate(schemas.updateUserRole),
   asyncHandler(userController.updateUserRole),
 );
 
