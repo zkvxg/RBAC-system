@@ -19,6 +19,9 @@ const schema = z
           .filter(Boolean),
       ),
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+    LOG_LEVEL: z
+      .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+      .optional(),
   })
   .refine(
     (env) => env.NODE_ENV !== "production" || env.JWT_SECRET.length >= 32,
@@ -37,4 +40,7 @@ if (!parsed.success) {
   throw new Error(`Invalid environment configuration:\n${issues}`);
 }
 
-module.exports = Object.freeze(parsed.data);
+const env = parsed.data;
+env.LOG_LEVEL ??= env.NODE_ENV === "test" ? "silent" : "info";
+
+module.exports = Object.freeze(env);

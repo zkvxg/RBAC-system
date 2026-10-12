@@ -29,7 +29,7 @@ const errorHandler = (err, req, res, _next) => {
     return res.status(status).json({ message: err.message });
   }
 
-  console.error(err.stack);
+  req.log.error({ err }, "Unhandled error");
   res.status(500).json({ message: "Something went wrong!" });
 };
 
