@@ -20,6 +20,7 @@ const requestLogger = pinoHttp({
     if (res.statusCode >= 400) return "warn";
     return "info";
   },
+  autoLogging: { ignore: (req) => req.url === "/health" },
 });
 
 module.exports = { requestLogger };

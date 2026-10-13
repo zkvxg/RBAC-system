@@ -2,10 +2,7 @@ const sequelize = require("../config/database");
 const { seedAdminAndEmployee } = require("./utils/factories");
 const { seedDefaults } = require("../config/seed");
 
-process.env.NODE_ENV = "test";
-process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
-
-const { startServer } = require("../app");
+const { startServer } = require("../server");
 
 module.exports = async () => {
   global.__SERVER__ = await startServer({ port: process.env.TEST_PORT });

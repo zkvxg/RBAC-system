@@ -35,4 +35,20 @@ test.describe("Observability", () => {
       expect(response.headers()["x-request-id"]).not.toBe("bad id with spaces");
     });
   });
+
+  test.describe("Health check", () => {
+    test("should report healthy api and database", async () => {
+      const response = await apiClient.get("/health");
+
+      expect(response.status()).toBe(200);
+      const body = await response.json();
+      expect(body).toMatchObject({ status: "ok", database: "up" });
+    });
+
+    test("should not require authentication", async () => {
+      const response = await apiClient.context.get("/health");
+
+      expect(response.status()).toBe(200);
+    });
+  });
 });
