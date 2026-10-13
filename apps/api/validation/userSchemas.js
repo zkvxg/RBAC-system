@@ -37,6 +37,26 @@ const updateUser = {
 
 const userId = { params: idParams };
 
+const listUsers = {
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    search: z.string().trim().min(1).max(100).optional(),
+    roleId: z.coerce.number().int().positive().optional(),
+    isActive: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+    sortBy: z
+      .enum(["createdAt", "username", "email", "name"])
+      .default("createdAt"),
+    order: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .transform((value) => value.toUpperCase()),
+  }),
+};
+
 const updateUserRole = {
   params: idParams,
   body: z.object({
@@ -47,4 +67,10 @@ const updateUserRole = {
   }),
 };
 
-module.exports = { createUser, updateUser, userId, updateUserRole };
+module.exports = {
+  listUsers,
+  createUser,
+  updateUser,
+  userId,
+  updateUserRole,
+};

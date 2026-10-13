@@ -58,8 +58,9 @@ class UserService {
       if (!USE_MOCKS) {
         const response = await axios.get(`${API_URL}/users`, {
           headers: getAuthHeaders(),
+          params: { limit: 100 },
         });
-        return response.data.map(mapApiUserToUi);
+        return response.data.data.map(mapApiUserToUi);
       }
 
       return Promise.resolve(MOCK_USERS);
@@ -71,8 +72,10 @@ class UserService {
   async getUserById(id) {
     try {
       if (!USE_MOCKS) {
-        const users = await this.getUsers();
-        return users.find((u) => String(u.id) === String(id));
+        const response = await axios.get(`${API_URL}/users/${id}`, {
+          headers: getAuthHeaders(),
+        });
+        return mapApiUserToUi(response.data);
       }
 
       const user = MOCK_USERS.find((u) => u.id === id);

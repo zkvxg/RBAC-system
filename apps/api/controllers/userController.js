@@ -2,7 +2,11 @@ const userService = require("../services/userService");
 
 const userController = {
   async getAllUsers(req, res) {
-    res.json(await userService.list());
+    res.json(await userService.list(req.query));
+  },
+
+  async getUser(req, res) {
+    res.json(await userService.getById(req.params.id));
   },
 
   async createUser(req, res) {

@@ -63,8 +63,46 @@ const userService = {
     return User.findByPk(id, PUBLIC_VIEW);
   },
 
-  list() {
-    return User.findAll(PUBLIC_VIEW);
+  async getById(id) {
+    const user = await userService.getPublic(id);
+    if (!user) throw new NotFoundError("User not found");
+    return user;
+  },
+
+  async list({ page, limit, search, roleId, isActive, sortBy, order }) {
+    const like =
+      User.sequelize.getDialect() === "postgres" ? Op.iLike : Op.like;
+    const where = {
+      ...(search && {
+        [Op.or]: ["username", "email", "name"].map((field) => ({
+          [field]: { [like]: `%${search}%` },
+        })),
+      }),
+      ...(roleId !== undefined && { RoleId: roleId }),
+      ...(isActive !== undefined && { isActive }),
+    };
+
+    const { rows, count } = await User.findAndCountAll({
+      ...PUBLIC_VIEW,
+      where,
+      order: [
+        [sortBy, order],
+        ["id", order],
+      ],
+      limit,
+      offset: (page - 1) * limit,
+      distinct: true,
+    });
+
+    return {
+      data: rows,
+      meta: {
+        page,
+        limit,
+        total: count,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
   },
 
   async create({ roleId, roleName, isActive = true, ...fields }) {

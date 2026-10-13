@@ -11,7 +11,14 @@ router.use(validateToken);
 router.get(
   "/",
   requirePermission("users.view"),
+  validate(schemas.listUsers),
   asyncHandler(userController.getAllUsers),
+);
+router.get(
+  "/:id",
+  requirePermission("users.view"),
+  validate(schemas.userId),
+  asyncHandler(userController.getUser),
 );
 router.post(
   "/",

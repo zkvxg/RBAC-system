@@ -34,9 +34,9 @@ test.describe("User Management", () => {
 
       expect(response.status()).toBe(200);
       const body = await response.json();
-      expect(Array.isArray(body)).toBeTruthy();
-      expect(body.length).toBeGreaterThanOrEqual(2);
-      body.forEach((user) => {
+      expect(Array.isArray(body.data)).toBeTruthy();
+      expect(body.data.length).toBeGreaterThanOrEqual(2);
+      body.data.forEach((user) => {
         expect(user.password).toBeUndefined();
       });
     });
