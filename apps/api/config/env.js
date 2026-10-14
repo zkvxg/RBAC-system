@@ -19,6 +19,15 @@ const schema = z
           .filter(Boolean),
       ),
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+    DATABASE_URL: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.string().url().optional(),
+    ),
+    DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
+    DATABASE_SSL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .optional(),

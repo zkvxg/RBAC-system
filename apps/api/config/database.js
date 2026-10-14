@@ -1,17 +1,11 @@
 const { Sequelize } = require("sequelize");
-const path = require("path");
 const { NODE_ENV } = require("./env");
+const { dbConfig } = require("./dbConfig");
 const logger = require("./logger");
 
-const dbPath =
-  NODE_ENV === "test"
-    ? path.join(__dirname, "../database.test.sqlite")
-    : path.join(__dirname, "../database.sqlite");
+const { url, ...options } = dbConfig();
+options.logging = NODE_ENV === "test" ? false : (sql) => logger.debug(sql);
 
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: dbPath,
-  logging: NODE_ENV === "test" ? false : (sql) => logger.debug(sql),
-});
+const sequelize = url ? new Sequelize(url, options) : new Sequelize(options);
 
 module.exports = sequelize;
