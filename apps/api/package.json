@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "scripts": {
     "start": "node server.js",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:status": "sequelize-cli db:migrate:status",
+    "migration:create": "sequelize-cli migration:generate --name",
     "lint": "eslint .",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
@@ -25,6 +29,7 @@
     "pino-http": "^10.5.0",
     "sequelize": "^6.31.1",
     "sqlite3": "^6.0.1",
+    "umzug": "^3.8.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -32,6 +37,7 @@
     "@playwright/test": "^1.58.2",
     "eslint": "^8.57.1",
     "globals": "^15.15.0",
-    "pino-pretty": "^13.2.0"
+    "pino-pretty": "^13.2.0",
+    "sequelize-cli": "^6.6.5"
   }
 }

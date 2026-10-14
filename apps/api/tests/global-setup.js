@@ -1,13 +1,15 @@
 const sequelize = require("../config/database");
 const { seedAdminAndEmployee } = require("./utils/factories");
 const { seedDefaults } = require("../config/seed");
+const { createMigrator } = require("../db/migrator");
 
 const { startServer } = require("../server");
 
 module.exports = async () => {
-  global.__SERVER__ = await startServer({ port: process.env.TEST_PORT });
+  await sequelize.getQueryInterface().dropAllTables();
+  await createMigrator().up();
 
-  await sequelize.sync({ force: true });
+  global.__SERVER__ = await startServer({ port: process.env.TEST_PORT });
 
   await seedDefaults();
 
