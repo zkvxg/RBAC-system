@@ -57,4 +57,13 @@ User.beforeUpdate(async (user) => {
   }
 });
 
+User.prototype.toJSON = function toJSON() {
+  const { password, ...values } = this.get({ plain: true });
+  if (values.Role) {
+    const { Permissions, legacyPermissions, ...role } = values.Role;
+    values.Role = role;
+  }
+  return values;
+};
+
 module.exports = User;

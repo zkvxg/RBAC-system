@@ -51,7 +51,7 @@ test.describe("Role Management", () => {
         "/api/roles",
         buildRole({
           name: "moderator",
-          permissions: ["read", "write"],
+          permissions: ["reports.view", "reports.create"],
           description: "Moderator role",
         }),
         adminToken,
@@ -68,7 +68,7 @@ test.describe("Role Management", () => {
         "/api/roles",
         buildRole({
           name: "moderator",
-          permissions: ["read"],
+          permissions: ["reports.view"],
           description: "Duplicate moderator role",
         }),
         adminToken,
@@ -82,7 +82,7 @@ test.describe("Role Management", () => {
         "/api/roles",
         buildRole({
           name: "test_role",
-          permissions: ["read"],
+          permissions: ["reports.view"],
           description: "Test role",
         }),
         employeeToken,
@@ -98,7 +98,7 @@ test.describe("Role Management", () => {
         `/api/roles/${testRoleId}`,
         buildRole({
           name: "moderator_updated",
-          permissions: ["read", "write", "moderate"],
+          permissions: ["reports.view", "reports.create", "reports.export"],
           description: "Updated moderator role",
         }),
         adminToken,
@@ -114,7 +114,7 @@ test.describe("Role Management", () => {
         `/api/roles/${testRoleId}`,
         buildRole({
           name: "moderator_fail",
-          permissions: ["read"],
+          permissions: ["reports.view"],
           description: "Should fail",
         }),
         employeeToken,
@@ -128,7 +128,7 @@ test.describe("Role Management", () => {
         "/api/roles/99999",
         buildRole({
           name: "missing",
-          permissions: ["read"],
+          permissions: ["reports.view"],
           description: "missing role",
         }),
         adminToken,

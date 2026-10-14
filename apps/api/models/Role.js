@@ -12,14 +12,34 @@ const Role = sequelize.define("Role", {
     allowNull: false,
     unique: true,
   },
-  permissions: {
-    type: DataTypes.JSON,
-    allowNull: false,
-  },
   description: {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  permissions: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      if (this._pendingPermissions) return [...this._pendingPermissions];
+      return this.Permissions?.map((p) => p.key);
+    },
+    set(keys) {
+      this._pendingPermissions = [...new Set(keys ?? [])];
+      this.changed("updatedAt", true);
+    },
+  },
+  legacyPermissions: {
+    type: DataTypes.JSON,
+    field: "permissions",
+    allowNull: false,
+    defaultValue: [],
+  },
 });
+
+Role.prototype.toJSON = function toJSON() {
+  const { Permissions, legacyPermissions, ...values } = this.get({
+    plain: true,
+  });
+  return values;
+};
 
 module.exports = Role;

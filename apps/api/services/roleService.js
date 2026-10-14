@@ -1,3 +1,4 @@
+const sequelize = require("../config/database");
 const { Role } = require("../models");
 const {
   WILDCARD,
@@ -52,7 +53,9 @@ const roleService = {
     if (await Role.findOne({ where: { name } })) {
       throw new ConflictError("Role already exists");
     }
-    return Role.create({ name, description, permissions });
+    return sequelize.transaction((transaction) =>
+      Role.create({ name, description, permissions }, { transaction }),
+    );
   },
 
   async update(actor, id, changes) {
@@ -61,7 +64,9 @@ const roleService = {
       throw new BadRequestError("Cannot modify a superuser role");
     }
     assertCanGrant(actor, changes.permissions);
-    return role.update(changes);
+    return sequelize.transaction((transaction) =>
+      role.update(changes, { transaction }),
+    );
   },
 
   async remove(id) {

@@ -57,7 +57,7 @@ const authService = {
 
     const user = await User.findByPk(payload.sub, {
       attributes: ["id", "isActive"],
-      include: [{ model: Role, attributes: ["name", "permissions"] }],
+      include: [{ model: Role, attributes: ["id", "name", "permissions"] }],
     });
     if (!user) {
       throw new UnauthorizedError("Invalid token");

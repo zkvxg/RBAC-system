@@ -5,7 +5,7 @@ const roleService = require("./roleService");
 const { BadRequestError, ConflictError, NotFoundError } = require("../errors");
 
 const PUBLIC_VIEW = {
-  include: [{ model: Role, attributes: ["name", "permissions"] }],
+  include: [{ model: Role, attributes: ["id", "name", "permissions"] }],
   attributes: { exclude: ["password"] },
 };
 
@@ -15,7 +15,7 @@ const isSelf = (actor, id) => String(actor.userId) === String(id);
 
 async function isLastActiveSuperuser(user) {
   if (!user.isActive) return false;
-  const roles = await Role.findAll({ attributes: ["id", "permissions"] });
+  const roles = await Role.findAll();
   const superuserRoleIds = roles.filter(isSuperuserRole).map((r) => r.id);
   if (!superuserRoleIds.includes(user.RoleId)) return false;
   const others = await User.count({

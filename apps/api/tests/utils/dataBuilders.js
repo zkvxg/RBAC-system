@@ -9,7 +9,7 @@ const buildRole = (overrides = {}) => {
   const id = nextId();
   return {
     name: `role_${id}`,
-    permissions: ["read"],
+    permissions: ["profile.view"],
     description: "Test role",
     ...overrides,
   };

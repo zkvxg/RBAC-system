@@ -1,5 +1,6 @@
 const { z } = require("zod");
 const { idParams } = require("./common");
+const { PERMISSION_KEYS } = require("../config/permissions");
 
 const name = z
   .string({ required_error: "name is required" })
@@ -13,10 +14,15 @@ const description = z
   .min(1, "description is required")
   .max(255);
 
-const permissions = z.array(z.string().trim().min(1), {
-  required_error: "permissions is required",
-  invalid_type_error: "permissions must be an array",
-});
+const permissions = z.array(
+  z.string().refine((key) => PERMISSION_KEYS.includes(key), {
+    message: "Unknown permission",
+  }),
+  {
+    required_error: "permissions is required",
+    invalid_type_error: "permissions must be an array",
+  },
+);
 
 const createRole = {
   body: z.object({ name, description, permissions }),

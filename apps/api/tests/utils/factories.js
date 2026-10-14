@@ -17,7 +17,7 @@ const seedAdminAndEmployee = async () => {
     where: { name: "admin" },
     defaults: buildRole({
       name: "admin",
-      permissions: ["read", "write", "delete", "manage_users", "manage_roles"],
+      permissions: ["*"],
       description: "Administrator role",
     }),
   });
