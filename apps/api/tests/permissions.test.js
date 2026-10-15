@@ -25,7 +25,6 @@ test.describe("Permission storage", () => {
       expect.arrayContaining(["users.view", "roles.view"]),
     );
     expect(manager.Permissions).toBeUndefined();
-    expect(manager.legacyPermissions).toBeUndefined();
   });
 
   test("should expose role permissions nested in users", async () => {

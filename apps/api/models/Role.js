@@ -27,18 +27,10 @@ const Role = sequelize.define("Role", {
       this.changed("updatedAt", true);
     },
   },
-  legacyPermissions: {
-    type: DataTypes.JSON,
-    field: "permissions",
-    allowNull: false,
-    defaultValue: [],
-  },
 });
 
 Role.prototype.toJSON = function toJSON() {
-  const { Permissions, legacyPermissions, ...values } = this.get({
-    plain: true,
-  });
+  const { Permissions, ...values } = this.get({ plain: true });
   return values;
 };
 
