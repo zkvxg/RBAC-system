@@ -1,15 +1,28 @@
 const env = require("./config/env");
 const logger = require("./config/logger");
 const sequelize = require("./config/database");
-const { seedDefaults } = require("./config/seed");
+const { createMigrator, createSeeder } = require("./db/migrator");
 const { app } = require("./app");
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
+const prepareDatabase = async () => {
+  const pending = await createMigrator().pending();
+  if (pending.length === 0) return;
+
+  if (!env.DB_AUTO_MIGRATE) {
+    throw new Error(
+      `Database has ${pending.length} pending migration(s); run "npm run db:migrate"`,
+    );
+  }
+  await createMigrator().up();
+  await createSeeder().up();
+  logger.info({ migrations: pending.map((m) => m.name) }, "Migrated database");
+};
+
 const startServer = async ({ port = env.PORT } = {}) => {
   if (env.NODE_ENV !== "test") {
-    await sequelize.sync();
-    await seedDefaults();
+    await prepareDatabase();
   }
 
   return new Promise((resolve) => {

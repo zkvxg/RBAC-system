@@ -28,6 +28,7 @@ const schema = z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
+    DB_AUTO_MIGRATE: z.enum(["true", "false"]).optional(),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .optional(),
@@ -51,5 +52,8 @@ if (!parsed.success) {
 
 const env = parsed.data;
 env.LOG_LEVEL ??= env.NODE_ENV === "test" ? "silent" : "info";
+env.DB_AUTO_MIGRATE = env.DB_AUTO_MIGRATE
+  ? env.DB_AUTO_MIGRATE === "true"
+  : env.NODE_ENV === "development";
 
 module.exports = Object.freeze(env);
