@@ -33,7 +33,7 @@
     "sequelize": "^6.31.1",
     "sqlite3": "^6.0.1",
     "umzug": "^3.8.3",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.1",

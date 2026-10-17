@@ -1,5 +1,6 @@
 const { z } = require("zod");
 const {
+  required,
   idParams,
   email,
   username,
@@ -21,7 +22,7 @@ const createUser = {
     email,
     password,
     ...profileFields,
-    roleId: z.coerce.number().int().positive().optional(),
+    roleId: z.number().int().positive().optional(),
     roleName: z.string().trim().toLowerCase().optional(),
   }),
 };
@@ -60,8 +61,8 @@ const listUsers = {
 const updateUserRole = {
   params: idParams,
   body: z.object({
-    roleId: z.coerce
-      .number({ required_error: "roleId is required" })
+    roleId: z
+      .number(required("roleId is required"))
       .int()
       .positive("roleId is required"),
   }),
