@@ -19,6 +19,7 @@
     "test:report": "playwright show-report playwright-report"
   },
   "dependencies": {
+    "@rbac/shared": "*",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
