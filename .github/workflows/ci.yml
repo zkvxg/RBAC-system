@@ -33,8 +33,28 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
   test-api:
-    name: API tests
+    name: API tests (${{ matrix.database }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: rbac
+          POSTGRES_PASSWORD: rbac
+          POSTGRES_DB: rbac_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rbac -d rbac_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgres://rbac:rbac@localhost:5432/rbac_test' || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,11 +67,22 @@ jobs:
 
       - run: npm run test:api
 
+      - name: Verify migrations roll back and reapply
+        if: matrix.database == 'postgres'
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgres://rbac:rbac@localhost:5432/rbac_test
+          JWT_SECRET: ci-only-secret
+        run: |
+          npx sequelize-cli db:migrate:undo:all
+          npx sequelize-cli db:migrate
+          npx sequelize-cli db:seed:all
+
       - name: Upload API test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-api-report
+          name: playwright-api-report-${{ matrix.database }}
           path: apps/api/playwright-report/
           retention-days: 14
 
