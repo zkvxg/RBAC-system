@@ -1,9 +1,15 @@
 const js = require("@eslint/js");
 const globals = require("globals");
+const tseslint = require("typescript-eslint");
 const prettier = require("eslint-config-prettier");
 
-module.exports = [
-  { ignores: ["node_modules", "playwright-report", "test-results"] },
+const unusedVars = [
+  "error",
+  { argsIgnorePattern: "^_", ignoreRestSiblings: true },
+];
+
+module.exports = tseslint.config(
+  { ignores: ["node_modules", "dist", "playwright-report", "test-results"] },
   {
     files: ["**/*.js"],
     languageOptions: {
@@ -13,13 +19,20 @@ module.exports = [
     },
     rules: {
       ...js.configs.recommended.rules,
-      "no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", ignoreRestSiblings: true },
-      ],
+      "no-unused-vars": unusedVars,
       eqeqeq: ["error", "always"],
       "no-console": "off",
     },
   },
+  {
+    files: ["**/*.ts"],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: { globals: globals.node },
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": unusedVars,
+      eqeqeq: ["error", "always"],
+    },
+  },
   prettier,
-];
+);

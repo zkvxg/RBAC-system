@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev:web": "npm run dev -w @rbac/web",
-    "dev:api": "npm run start -w @rbac/api",
+    "dev:api": "npm run dev -w @rbac/api",
     "lint": "npm run lint --workspaces --if-present",
     "test:api": "npm run test -w @rbac/api",
     "test:web": "npm run test:e2e -w @rbac/web",
