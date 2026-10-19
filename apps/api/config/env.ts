@@ -1,5 +1,7 @@
-require("dotenv").config();
-const { z } = require("zod");
+import "dotenv/config";
+import { z } from "zod";
+
+const booleanString = z.enum(["true", "false"]).transform((v) => v === "true");
 
 const schema = z
   .object({
@@ -21,14 +23,11 @@ const schema = z
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
     DATABASE_URL: z.preprocess(
       (value) => (value === "" ? undefined : value),
-      z.string().url().optional(),
+      z.url().optional(),
     ),
     DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
-    DATABASE_SSL: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true"),
-    DB_AUTO_MIGRATE: z.enum(["true", "false"]).optional(),
+    DATABASE_SSL: booleanString.default(false),
+    DB_AUTO_MIGRATE: booleanString.optional(),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .optional(),
@@ -39,7 +38,14 @@ const schema = z
       message: "JWT_SECRET must be at least 32 characters in production",
       path: ["JWT_SECRET"],
     },
-  );
+  )
+  .transform((env) => ({
+    ...env,
+    LOG_LEVEL: env.LOG_LEVEL ?? (env.NODE_ENV === "test" ? "silent" : "info"),
+    DB_AUTO_MIGRATE: env.DB_AUTO_MIGRATE ?? env.NODE_ENV === "development",
+  }));
+
+export type Env = z.infer<typeof schema>;
 
 const parsed = schema.safeParse(process.env);
 
@@ -50,10 +56,6 @@ if (!parsed.success) {
   throw new Error(`Invalid environment configuration:\n${issues}`);
 }
 
-const env = parsed.data;
-env.LOG_LEVEL ??= env.NODE_ENV === "test" ? "silent" : "info";
-env.DB_AUTO_MIGRATE = env.DB_AUTO_MIGRATE
-  ? env.DB_AUTO_MIGRATE === "true"
-  : env.NODE_ENV === "development";
+const env: Readonly<Env> = Object.freeze(parsed.data);
 
-module.exports = Object.freeze(env);
+export default env;

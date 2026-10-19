@@ -1,7 +1,7 @@
 const MIN_LENGTH = 8;
 const MAX_BYTES = 72;
 
-const validatePassword = (password) => {
+export const validatePassword = (password: unknown): string | null => {
   if (typeof password !== "string" || password.length < MIN_LENGTH) {
     return `Password must be at least ${MIN_LENGTH} characters long`;
   }
@@ -13,5 +13,3 @@ const validatePassword = (password) => {
   }
   return null;
 };
-
-module.exports = { validatePassword };

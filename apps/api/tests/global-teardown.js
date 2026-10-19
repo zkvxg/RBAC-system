@@ -1,4 +1,4 @@
-const sequelize = require("../config/database");
+const sequelize = require("../config/database").default;
 
 module.exports = async () => {
   if (global.__SERVER__) {

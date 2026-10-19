@@ -1,10 +1,10 @@
-const { randomUUID } = require("crypto");
-const pinoHttp = require("pino-http");
-const logger = require("../config/logger");
+import { randomUUID } from "crypto";
+import pinoHttp from "pino-http";
+import logger from "../config/logger";
 
 const REQUEST_ID_PATTERN = /^[\w-]{1,64}$/;
 
-const requestLogger = pinoHttp({
+export const requestLogger = pinoHttp({
   logger,
   genReqId(req, res) {
     const incoming = req.headers["x-request-id"];
@@ -22,5 +22,3 @@ const requestLogger = pinoHttp({
   },
   autoLogging: { ignore: (req) => req.url === "/health" },
 });
-
-module.exports = { requestLogger };

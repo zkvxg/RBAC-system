@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const env = require("./config/env");
+const env = require("./config/env").default;
 const { requestLogger } = require("./middleware/requestLogger");
 
 const healthRoutes = require("./routes/healthRoutes");

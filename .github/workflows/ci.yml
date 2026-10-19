@@ -74,9 +74,9 @@ jobs:
           DATABASE_URL: postgres://rbac:rbac@localhost:5432/rbac_test
           JWT_SECRET: ci-only-secret
         run: |
-          npx sequelize-cli db:migrate:undo:all
-          npx sequelize-cli db:migrate
-          npx sequelize-cli db:seed:all
+          npm run db:migrate:undo:all
+          npm run db:migrate
+          npm run db:seed
 
       - name: Upload API test report
         if: always()

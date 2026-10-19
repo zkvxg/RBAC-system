@@ -1,4 +1,4 @@
-const sequelize = require("../config/database");
+const sequelize = require("../config/database").default;
 const { Role } = require("../models");
 const {
   WILDCARD,

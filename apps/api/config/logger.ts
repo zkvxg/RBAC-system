@@ -1,5 +1,5 @@
-const pino = require("pino");
-const env = require("./env");
+import pino from "pino";
+import env from "./env";
 
 const logger = pino({
   level: env.LOG_LEVEL,
@@ -17,4 +17,4 @@ const logger = pino({
   }),
 });
 
-module.exports = logger;
+export default logger;

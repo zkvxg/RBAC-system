@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const env = require("../config/env");
+const env = require("../config/env").default;
 const { User, Role } = require("../models");
 const roleService = require("./roleService");
 const userService = require("./userService");

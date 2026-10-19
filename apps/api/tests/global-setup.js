@@ -1,4 +1,4 @@
-const sequelize = require("../config/database");
+const sequelize = require("../config/database").default;
 const { seedAdminAndEmployee } = require("./utils/factories");
 const { createMigrator, createSeeder } = require("../db/migrator");
 

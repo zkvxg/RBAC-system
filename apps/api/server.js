@@ -1,6 +1,6 @@
-const env = require("./config/env");
-const logger = require("./config/logger");
-const sequelize = require("./config/database");
+const env = require("./config/env").default;
+const logger = require("./config/logger").default;
+const sequelize = require("./config/database").default;
 const { createMigrator, createSeeder } = require("./db/migrator");
 const { app } = require("./app");
 

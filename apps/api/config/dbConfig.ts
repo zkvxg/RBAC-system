@@ -1,7 +1,11 @@
-const path = require("path");
-const env = require("./env");
+import path from "path";
+import type { Options } from "sequelize";
+import env from "./env";
+import { API_ROOT } from "./paths";
 
-const dbConfig = () => {
+export type DbConfig = Options & { url?: string };
+
+export const dbConfig = (): DbConfig => {
   if (env.DATABASE_URL) {
     return {
       url: env.DATABASE_URL,
@@ -15,10 +19,5 @@ const dbConfig = () => {
 
   const file =
     env.NODE_ENV === "test" ? "database.test.sqlite" : "database.sqlite";
-  return {
-    dialect: "sqlite",
-    storage: path.join(__dirname, "..", file),
-  };
+  return { dialect: "sqlite", storage: path.join(API_ROOT, file) };
 };
-
-module.exports = { dbConfig };
