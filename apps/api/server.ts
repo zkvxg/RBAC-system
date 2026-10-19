@@ -1,8 +1,9 @@
-const env = require("./config/env").default;
-const logger = require("./config/logger").default;
-const sequelize = require("./config/database").default;
-const { createMigrator, createSeeder } = require("./db/migrator");
-const { app } = require("./app");
+import type { Server } from "http";
+import env from "./config/env";
+import logger from "./config/logger";
+import sequelize from "./config/database";
+import { createMigrator, createSeeder } from "./db/migrator";
+import { app } from "./app";
 
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
@@ -20,7 +21,9 @@ const prepareDatabase = async () => {
   logger.info({ migrations: pending.map((m) => m.name) }, "Migrated database");
 };
 
-const startServer = async ({ port = env.PORT } = {}) => {
+export const startServer = async ({
+  port = env.PORT,
+}: { port?: number | string } = {}): Promise<Server> => {
   if (env.NODE_ENV !== "test") {
     await prepareDatabase();
   }
@@ -33,10 +36,10 @@ const startServer = async ({ port = env.PORT } = {}) => {
   });
 };
 
-const registerShutdown = (server) => {
+const registerShutdown = (server: Server) => {
   let shuttingDown = false;
 
-  const shutdown = async (signal) => {
+  const shutdown = async (signal: NodeJS.Signals) => {
     if (shuttingDown) return;
     shuttingDown = true;
     logger.info({ signal }, "Shutting down");
@@ -47,7 +50,7 @@ const registerShutdown = (server) => {
     }, SHUTDOWN_TIMEOUT_MS).unref();
 
     try {
-      await new Promise((resolve, reject) =>
+      await new Promise<void>((resolve, reject) =>
         server.close((err) => (err ? reject(err) : resolve())),
       );
       await sequelize.close();
@@ -71,5 +74,3 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-
-module.exports = { startServer };

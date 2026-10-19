@@ -1,27 +1,30 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const env = require("../config/env").default;
-const { User, Role } = require("../models");
-const roleService = require("./roleService");
-const userService = require("./userService");
-const { ForbiddenError, UnauthorizedError } = require("../errors");
+import bcrypt from "bcrypt";
+import jwt, { type SignOptions } from "jsonwebtoken";
+import type { LoginResponse } from "@rbac/shared";
+import env from "../config/env";
+import { User, Role } from "../models";
+import roleService from "./roleService";
+import userService from "./userService";
+import { ForbiddenError, UnauthorizedError } from "../errors";
+import type { AuthUser } from "./authTypes";
+import type { LoginInput, RegisterInput } from "../validation/authSchemas";
 
-const permissionsOf = (role) =>
+const permissionsOf = (role?: Role | null): string[] =>
   Array.isArray(role?.permissions) ? role.permissions : [];
 
 const authService = {
-  async register({ username, email, password }) {
+  async register({ username, email, password }: RegisterInput) {
     await userService.assertEmailFree(email);
     const role = await roleService.getDefaultRole();
     await User.create({ username, email, password, RoleId: role.id });
   },
 
-  async login({ email, password }) {
+  async login({ email, password }: LoginInput): Promise<LoginResponse> {
     const user = await User.findOne({ where: { email }, include: [Role] });
 
     const isValidPassword =
-      user && (await bcrypt.compare(password, user.password));
-    if (!isValidPassword) {
+      user !== null && (await bcrypt.compare(password, user.password));
+    if (!user || !isValidPassword) {
       throw new UnauthorizedError("Invalid credentials");
     }
 
@@ -33,7 +36,7 @@ const authService = {
     }
 
     const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
+      expiresIn: env.JWT_EXPIRES_IN as NonNullable<SignOptions["expiresIn"]>,
     });
 
     return {
@@ -47,15 +50,19 @@ const authService = {
     };
   },
 
-  async authenticate(token) {
-    let payload;
+  async authenticate(token: string): Promise<AuthUser> {
+    let payload: string | jwt.JwtPayload;
     try {
       payload = jwt.verify(token, env.JWT_SECRET);
     } catch {
       throw new UnauthorizedError("Invalid token");
     }
+    const userId = typeof payload === "object" ? Number(payload.sub) : NaN;
+    if (!Number.isInteger(userId)) {
+      throw new UnauthorizedError("Invalid token");
+    }
 
-    const user = await User.findByPk(payload.sub, {
+    const user = await User.findByPk(userId, {
       attributes: ["id", "isActive"],
       include: [{ model: Role, attributes: ["id", "name", "permissions"] }],
     });
@@ -73,7 +80,7 @@ const authService = {
     };
   },
 
-  async getProfile(userId) {
+  async getProfile(userId: number) {
     const user = await User.findByPk(userId, {
       include: [{ model: Role }],
       attributes: { exclude: ["password"] },
@@ -83,4 +90,4 @@ const authService = {
   },
 };
 
-module.exports = authService;
+export default authService;

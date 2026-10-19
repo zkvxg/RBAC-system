@@ -1,16 +1,21 @@
-const sequelize = require("../config/database").default;
-const { Role } = require("../models");
-const {
+import sequelize from "../config/database";
+import { Role } from "../models";
+import {
   WILDCARD,
   hasPermission,
   isSuperuserRole,
-} = require("../config/permissions");
-const {
+} from "../config/permissions";
+import {
   BadRequestError,
   ConflictError,
   ForbiddenError,
   NotFoundError,
-} = require("../errors");
+} from "../errors";
+import type { AuthUser } from "./authTypes";
+import type {
+  CreateRoleInput,
+  UpdateRoleInput,
+} from "../validation/roleSchemas";
 
 const DEFAULT_ROLE = {
   name: "employee",
@@ -18,7 +23,7 @@ const DEFAULT_ROLE = {
   permissions: ["profile.view"],
 };
 
-const assertCanGrant = (actor, permissions) => {
+const assertCanGrant = (actor: AuthUser, permissions?: string[]) => {
   if (
     permissions?.includes(WILDCARD) &&
     !hasPermission(actor.permissions, WILDCARD)
@@ -27,7 +32,7 @@ const assertCanGrant = (actor, permissions) => {
   }
 };
 
-const findOrFail = async (id) => {
+const findOrFail = async (id: number) => {
   const role = await Role.findByPk(id);
   if (!role) throw new NotFoundError("Role not found");
   return role;
@@ -48,7 +53,10 @@ const roleService = {
     return role;
   },
 
-  async create(actor, { name, description, permissions }) {
+  async create(
+    actor: AuthUser,
+    { name, description, permissions }: CreateRoleInput,
+  ) {
     assertCanGrant(actor, permissions);
     if (await Role.findOne({ where: { name } })) {
       throw new ConflictError("Role already exists");
@@ -58,7 +66,7 @@ const roleService = {
     );
   },
 
-  async update(actor, id, changes) {
+  async update(actor: AuthUser, id: number, changes: UpdateRoleInput) {
     const role = await findOrFail(id);
     if (isSuperuserRole(role)) {
       throw new BadRequestError("Cannot modify a superuser role");
@@ -69,7 +77,7 @@ const roleService = {
     );
   },
 
-  async remove(id) {
+  async remove(id: number) {
     const role = await findOrFail(id);
     if (isSuperuserRole(role)) {
       throw new BadRequestError("Cannot delete a superuser role");
@@ -78,4 +86,4 @@ const roleService = {
   },
 };
 
-module.exports = roleService;
+export default roleService;

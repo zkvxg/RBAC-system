@@ -1,6 +1,6 @@
-const { z } = require("zod");
-const { required, idParams } = require("./common");
-const { PERMISSION_KEYS } = require("../config/permissions");
+import { z } from "zod";
+import { required, idParams } from "./common";
+import { isPermission } from "../config/permissions";
 
 const name = z
   .string(required("name is required"))
@@ -15,9 +15,7 @@ const description = z
   .max(255);
 
 const permissions = z.array(
-  z.string().refine((key) => PERMISSION_KEYS.includes(key), {
-    message: "Unknown permission",
-  }),
+  z.string().refine(isPermission, { message: "Unknown permission" }),
   {
     error: (issue) =>
       issue.input === undefined
@@ -26,11 +24,11 @@ const permissions = z.array(
   },
 );
 
-const createRole = {
+export const createRole = {
   body: z.object({ name, description, permissions }),
 };
 
-const updateRole = {
+export const updateRole = {
   params: idParams,
   body: z.object({
     name: name.optional(),
@@ -39,6 +37,7 @@ const updateRole = {
   }),
 };
 
-const roleId = { params: idParams };
+export const roleId = { params: idParams };
 
-module.exports = { createRole, updateRole, roleId };
+export type CreateRoleInput = z.output<typeof createRole.body>;
+export type UpdateRoleInput = z.output<typeof updateRole.body>;

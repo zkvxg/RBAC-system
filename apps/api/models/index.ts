@@ -1,7 +1,7 @@
-const User = require("./User");
-const Role = require("./Role");
-const Permission = require("./Permission");
-const RolePermission = require("./RolePermission");
+import User from "./User";
+import Role from "./Role";
+import Permission from "./Permission";
+import RolePermission from "./RolePermission";
 
 Role.hasMany(User);
 User.belongsTo(Role);
@@ -24,7 +24,7 @@ Role.addScope(
 );
 
 Role.afterSave(async (role, options) => {
-  const keys = role._pendingPermissions;
+  const keys = role.pendingPermissions;
   if (!keys) return;
 
   const permissions = await Permission.findAll({
@@ -39,12 +39,7 @@ Role.afterSave(async (role, options) => {
 
   await role.setPermissions(permissions, { transaction: options.transaction });
   role.Permissions = permissions;
-  delete role._pendingPermissions;
+  delete role.pendingPermissions;
 });
 
-module.exports = {
-  User,
-  Role,
-  Permission,
-  RolePermission,
-};
+export { User, Role, Permission, RolePermission };

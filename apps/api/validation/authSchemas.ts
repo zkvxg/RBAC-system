@@ -1,11 +1,11 @@
-const { z } = require("zod");
-const { required, email, username, password } = require("./common");
+import { z } from "zod";
+import { required, email, username, password } from "./common";
 
-const register = {
+export const register = {
   body: z.object({ username, email, password }),
 };
 
-const login = {
+export const login = {
   body: z.object({
     email: z
       .string(required("Email and password are required"))
@@ -17,4 +17,5 @@ const login = {
   }),
 };
 
-module.exports = { register, login };
+export type RegisterInput = z.output<typeof register.body>;
+export type LoginInput = z.output<typeof login.body>;

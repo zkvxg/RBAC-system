@@ -1,6 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const sequelize = require("../config/database").default;
+import { Router } from "express";
+import sequelize from "../config/database";
+
+const router = Router();
 
 router.get("/", async (req, res) => {
   try {
@@ -12,4 +13,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

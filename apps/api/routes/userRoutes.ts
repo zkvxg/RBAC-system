@@ -1,10 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const { asyncHandler } = require("../utils/asyncHandler");
-const userController = require("../controllers/userController");
-const { validateToken, requirePermission } = require("../middleware/auth");
-const { validate } = require("../middleware/validate");
-const schemas = require("../validation/userSchemas");
+import { Router } from "express";
+import { asyncHandler } from "../utils/asyncHandler";
+import userController from "../controllers/userController";
+import { validateToken, requirePermission } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import * as schemas from "../validation/userSchemas";
+
+const router = Router();
 
 router.use(validateToken);
 
@@ -45,4 +46,4 @@ router.put(
   asyncHandler(userController.updateUserRole),
 );
 
-module.exports = router;
+export default router;
