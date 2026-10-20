@@ -1,4 +1,6 @@
-export const MOCK_ROLES = [
+import type { UiRole } from "../types";
+
+export const MOCK_ROLES: UiRole[] = [
   {
     id: 1,
     name: "Admin",

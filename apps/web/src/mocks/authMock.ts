@@ -1,4 +1,8 @@
-export const AUTH_MOCK_USERS = [
+import type { SessionUiUser } from "../types";
+
+export type AuthMockUser = SessionUiUser & { password: string };
+
+export const AUTH_MOCK_USERS: AuthMockUser[] = [
   {
     email: "admin@test.com",
     password: "test123",

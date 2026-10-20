@@ -1,4 +1,6 @@
-export const MOCK_DEPARTMENTS = [
+import type { Department } from "../types";
+
+export const MOCK_DEPARTMENTS: Department[] = [
   {
     id: "DEP001",
     name: "IT",

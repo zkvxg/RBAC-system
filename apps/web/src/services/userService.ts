@@ -1,25 +1,18 @@
 import axios from "axios";
+import type { Paginated, RoleDto, UserDto } from "@rbac/shared";
 import { MOCK_USERS } from "../mocks/usersMock";
-import {
-  API_BASE_URL,
-  USE_MOCKS,
-  toApiRoleName,
-  toUiRole,
-} from "../config/runtime";
+import { USE_MOCKS, toApiRoleName, toUiRole } from "../config/runtime";
+import { API_URL, getAuthHeaders, rethrow } from "./http";
+import type { DeleteResult, UiUser, UserFormData } from "../types";
 
-const API_URL = `${API_BASE_URL}/api`;
+const handleError = rethrow("API");
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const mapApiUserToUi = (user) => ({
+const mapApiUserToUi = (user: UserDto): UiUser => ({
   id: String(user.id),
   name: user.name || user.username || `User ${user.id}`,
   username: user.username,
   email: user.email,
-  role: toUiRole(user.Role?.name || user.role),
+  role: toUiRole(user.Role?.name),
   status: user.isActive === false ? "Inactive" : "Active",
   department: user.department || "N/A",
   joinDate: user.createdAt,
@@ -28,7 +21,7 @@ const mapApiUserToUi = (user) => ({
   location: user.location || "",
 });
 
-const buildBackendPayload = (userData) => ({
+const buildBackendPayload = (userData: UserFormData) => ({
   username:
     userData.username ||
     (userData.email ? userData.email.split("@")[0] : undefined),
@@ -40,9 +33,9 @@ const buildBackendPayload = (userData) => ({
   isActive: userData.status ? userData.status !== "Inactive" : undefined,
 });
 
-async function resolveRoleId(uiRoleName) {
+async function resolveRoleId(uiRoleName: string | undefined): Promise<number> {
   const apiRole = toApiRoleName(uiRoleName);
-  const { data } = await axios.get(`${API_URL}/roles`, {
+  const { data } = await axios.get<RoleDto[]>(`${API_URL}/roles`, {
     headers: getAuthHeaders(),
   });
   const match = data.find((r) => String(r.name).toLowerCase() === apiRole);
@@ -52,40 +45,42 @@ async function resolveRoleId(uiRoleName) {
   return match.id;
 }
 
+const DEFAULT_PERMISSIONS: Record<string, string[]> = {
+  Admin: ["users.manage", "roles.manage", "reports.view", "reports.create"],
+  Manager: ["users.view", "reports.view", "reports.create"],
+};
+
 class UserService {
-  async getUsers() {
+  async getUsers(): Promise<UiUser[]> {
     try {
       if (!USE_MOCKS) {
-        const response = await axios.get(`${API_URL}/users`, {
-          headers: getAuthHeaders(),
-          params: { limit: 100 },
-        });
-        return response.data.data.map(mapApiUserToUi);
+        const { data } = await axios.get<Paginated<UserDto>>(
+          `${API_URL}/users`,
+          { headers: getAuthHeaders(), params: { limit: 100 } },
+        );
+        return data.data.map(mapApiUserToUi);
       }
-
-      return Promise.resolve(MOCK_USERS);
+      return MOCK_USERS;
     } catch (error) {
-      this.handleError(error);
+      return handleError(error);
     }
   }
 
-  async getUserById(id) {
+  async getUserById(id: string): Promise<UiUser | undefined> {
     try {
       if (!USE_MOCKS) {
-        const response = await axios.get(`${API_URL}/users/${id}`, {
+        const { data } = await axios.get<UserDto>(`${API_URL}/users/${id}`, {
           headers: getAuthHeaders(),
         });
-        return mapApiUserToUi(response.data);
+        return mapApiUserToUi(data);
       }
-
-      const user = MOCK_USERS.find((u) => u.id === id);
-      return Promise.resolve(user);
+      return MOCK_USERS.find((u) => u.id === id);
     } catch (error) {
-      this.handleError(error);
+      return handleError(error);
     }
   }
 
-  async createUser(userData) {
+  async createUser(userData: UserFormData): Promise<UiUser> {
     try {
       if (!USE_MOCKS) {
         const roleId = await resolveRoleId(userData.role);
@@ -94,60 +89,59 @@ class UserService {
           password: userData.password || "test123",
           roleId,
         };
-        const { data } = await axios.post(`${API_URL}/users`, payload, {
-          headers: getAuthHeaders(),
-        });
+        const { data } = await axios.post<UserDto>(
+          `${API_URL}/users`,
+          payload,
+          { headers: getAuthHeaders() },
+        );
         return mapApiUserToUi(data);
       }
 
       const maxId = Math.max(
         ...MOCK_USERS.map((u) => parseInt(u.id.replace("USR", ""))),
       );
-      const nextId = maxId + 1;
-      const formattedId = `USR${String(nextId).padStart(3, "0")}`;
-
-      const newUser = {
-        id: formattedId,
+      const formattedId = `USR${String(maxId + 1).padStart(3, "0")}`;
+      const newUser: UiUser = {
+        name: "",
+        email: "",
+        role: "Employee",
+        department: "",
+        phone: "",
+        location: "",
         ...userData,
+        id: formattedId,
         status: "Active",
         joinDate: new Date().toISOString().split("T")[0],
         lastActive: new Date().toISOString(),
         permissions: this.getDefaultPermissions(userData.role),
       };
       MOCK_USERS.push(newUser);
-      return Promise.resolve(newUser);
+      return newUser;
     } catch (error) {
-      this.handleError(error);
+      return handleError(error);
     }
   }
 
-  getDefaultPermissions(role) {
-    switch (role) {
-      case "Admin":
-        return [
-          "users.manage",
-          "roles.manage",
-          "reports.view",
-          "reports.create",
-        ];
-      case "Manager":
-        return ["users.view", "reports.view", "reports.create"];
-      default:
-        return ["reports.view"];
-    }
+  getDefaultPermissions(role: string | undefined): string[] {
+    return DEFAULT_PERMISSIONS[role ?? ""] ?? ["reports.view"];
   }
 
-  async updateUser(id, userData) {
+  async updateUser(
+    id: string,
+    userData: UserFormData,
+  ): Promise<UiUser | undefined> {
     try {
       if (USE_MOCKS) {
         const index = MOCK_USERS.findIndex((u) => u.id === id);
-        if (index !== -1) {
-          MOCK_USERS[index] = { ...MOCK_USERS[index], ...userData };
-          return Promise.resolve(MOCK_USERS[index]);
+        const existing = MOCK_USERS[index];
+        if (existing) {
+          const updated = { ...existing, ...userData };
+          MOCK_USERS[index] = updated;
+          return updated;
         }
       }
 
-      const { data } = await axios.put(
+      const { data } = await axios.put<UserDto>(
         `${API_URL}/users/${id}`,
         buildBackendPayload(userData),
         { headers: getAuthHeaders() },
@@ -164,17 +158,17 @@ class UserService {
 
       return mapApiUserToUi(data);
     } catch (error) {
-      this.handleError(error);
+      return handleError(error);
     }
   }
 
-  async deleteUser(id) {
+  async deleteUser(id: string): Promise<DeleteResult> {
     try {
       if (USE_MOCKS) {
         const index = MOCK_USERS.findIndex((u) => u.id === id);
         if (index !== -1) {
           MOCK_USERS.splice(index, 1);
-          return Promise.resolve({ success: true });
+          return { success: true };
         }
       }
 
@@ -183,13 +177,8 @@ class UserService {
       });
       return { success: true };
     } catch (error) {
-      this.handleError(error);
+      return handleError(error);
     }
-  }
-
-  handleError(error) {
-    console.error("API Error:", error);
-    throw error;
   }
 }
 
