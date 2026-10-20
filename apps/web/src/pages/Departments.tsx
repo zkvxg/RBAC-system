@@ -39,12 +39,19 @@ import {
 import Modal from "../components/common/Modal";
 import DepartmentForm from "../components/departments/DepartmentForm";
 import { departmentService } from "../services/departmentService";
+import type { Department } from "../types";
+import type { DepartmentSubmitData } from "../components/departments/DepartmentForm";
+import { errorMessage } from "../utils/errors";
+
+type Filters = Record<"search" | "status" | "location", string>;
 
 function Departments() {
-  const [departments, setDepartments] = useState([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [departmentToDelete, setDepartmentToDelete] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<Department | null>(null);
+  const [departmentToDelete, setDepartmentToDelete] =
+    useState<Department | null>(null);
   const {
     isOpen: isFormOpen,
     onOpen: openForm,
@@ -66,7 +73,7 @@ function Departments() {
   );
   const borderColor = useColorModeValue("gray.200", "gray.600");
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     search: "",
     status: "",
     location: "",
@@ -83,7 +90,7 @@ function Departments() {
     } catch (error) {
       toast({
         title: "Error loading departments",
-        description: error.message,
+        description: errorMessage(error),
         status: "error",
         duration: 3000,
       });
@@ -97,17 +104,19 @@ function Departments() {
     openForm();
   };
 
-  const handleEditDepartment = (department) => {
+  const handleEditDepartment = (department: Department) => {
     setSelectedDepartment(department);
     openForm();
   };
 
-  const handleDeleteClick = (department) => {
+  const handleDeleteClick = (department: Department) => {
     setDepartmentToDelete(department);
     openDelete();
   };
 
-  const handleDepartmentSubmit = async (departmentData) => {
+  const handleDepartmentSubmit = async (
+    departmentData: DepartmentSubmitData,
+  ) => {
     try {
       if (selectedDepartment) {
         await departmentService.updateDepartment(
@@ -134,8 +143,10 @@ function Departments() {
     } catch (error) {
       toast({
         title: "Error",
-        description:
-          error.message || "An error occurred while saving the department",
+        description: errorMessage(
+          error,
+          "An error occurred while saving the department",
+        ),
         status: "error",
         duration: 3000,
       });
@@ -143,6 +154,7 @@ function Departments() {
   };
 
   const handleDeleteConfirm = async () => {
+    if (!departmentToDelete) return;
     try {
       await departmentService.deleteDepartment(departmentToDelete.id);
       toast({
@@ -156,15 +168,17 @@ function Departments() {
     } catch (error) {
       toast({
         title: "Error",
-        description:
-          error.message || "Cannot delete department with active employees",
+        description: errorMessage(
+          error,
+          "Cannot delete department with active employees",
+        ),
         status: "error",
         duration: 3000,
       });
     }
   };
 
-  const formatBudget = (amount) => {
+  const formatBudget = (amount: number) => {
     return new Intl.NumberFormat("pl-PL", {
       style: "currency",
       currency: "PLN",
@@ -173,7 +187,7 @@ function Departments() {
     }).format(amount);
   };
 
-  const handleFilterChange = (field, value) => {
+  const handleFilterChange = (field: keyof Filters, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
@@ -200,7 +214,7 @@ function Departments() {
 
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
-  const renderMobileCard = (department) => (
+  const renderMobileCard = (department: Department) => (
     <Card
       key={department.id}
       bg={bgColor}

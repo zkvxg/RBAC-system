@@ -76,7 +76,7 @@ function Header() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const handleNotificationClick = (notificationId) => {
+  const handleNotificationClick = (notificationId: number) => {
     setNotifications((prev) =>
       prev.map((notification) =>
         notification.id === notificationId
@@ -110,7 +110,7 @@ function Header() {
     { name: "Roles", href: "/roles", roles: ["Admin"] },
     { name: "Analytics", href: "/analytics", roles: ["Admin", "Manager"] },
     { name: "Departments", href: "/departments", roles: ["Admin", "Manager"] },
-  ].filter((item) => item.roles.includes(user?.role));
+  ].filter((item) => !!user && item.roles.includes(user.role));
 
   return (
     <Box

@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import {
   FormControl,
   FormLabel,
@@ -15,9 +14,28 @@ import {
 } from "@chakra-ui/react";
 import { roleService } from "../../services/roleService";
 import { departmentService } from "../../services/departmentService";
+import type { Department, Status, UiRole, UiUser } from "../../types";
 
-function UserForm({ user, onSubmit, onCancel }) {
-  const [formData, setFormData] = useState({
+export interface UserFormValues {
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  phone: string;
+  location: string;
+  status: Status;
+}
+
+interface UserFormProps {
+  user?: Partial<UiUser> | null;
+  onSubmit: (data: UserFormValues) => void;
+  onCancel: () => void;
+}
+
+type UserFormErrors = Partial<Record<keyof UserFormValues, string>>;
+
+function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
+  const [formData, setFormData] = useState<UserFormValues>({
     name: user?.name || "",
     email: user?.email || "",
     role: user?.role || "",
@@ -27,9 +45,9 @@ function UserForm({ user, onSubmit, onCancel }) {
     status: user?.status || "Active",
   });
 
-  const [roles, setRoles] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [roles, setRoles] = useState<UiRole[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [errors, setErrors] = useState<UserFormErrors>({});
   const toast = useToast();
 
   useEffect(() => {
@@ -37,10 +55,11 @@ function UserForm({ user, onSubmit, onCancel }) {
       try {
         const rolesData = await roleService.getRoles();
         setRoles(rolesData);
-        if (!formData.role && rolesData.length > 0) {
-          setFormData((prev) => ({ ...prev, role: rolesData[0].name }));
+        const [firstRole] = rolesData;
+        if (!formData.role && firstRole) {
+          setFormData((prev) => ({ ...prev, role: firstRole.name }));
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error loading roles",
           description: "Could not load available roles",
@@ -57,7 +76,7 @@ function UserForm({ user, onSubmit, onCancel }) {
       try {
         const deptData = await departmentService.getDepartments();
         setDepartments(deptData.filter((dept) => dept.status === "Active"));
-      } catch (error) {
+      } catch {
         toast({
           title: "Error loading departments",
           description: "Could not load available departments",
@@ -70,7 +89,7 @@ function UserForm({ user, onSubmit, onCancel }) {
   }, []);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: UserFormErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
@@ -108,7 +127,7 @@ function UserForm({ user, onSubmit, onCancel }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (validateForm()) {
@@ -123,8 +142,11 @@ function UserForm({ user, onSubmit, onCancel }) {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const name = e.target.name as keyof UserFormValues;
+    const { value } = e.target;
 
     if (name === "phone") {
       const phoneDigits = value.replace(/\D/g, "");
@@ -246,19 +268,5 @@ function UserForm({ user, onSubmit, onCancel }) {
     </form>
   );
 }
-
-UserForm.propTypes = {
-  user: PropTypes.shape({
-    name: PropTypes.string,
-    email: PropTypes.string,
-    role: PropTypes.string,
-    department: PropTypes.string,
-    phone: PropTypes.string,
-    location: PropTypes.string,
-    status: PropTypes.string,
-  }),
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
 
 export default UserForm;

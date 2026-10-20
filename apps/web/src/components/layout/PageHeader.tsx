@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   Box,
   Button,
@@ -7,7 +8,14 @@ import {
   useColorModeValue,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import PropTypes from "prop-types";
+
+interface PageHeaderProps {
+  title: string;
+  description: string;
+  buttonLabel?: string;
+  buttonIcon?: ComponentType<{ className?: string }>;
+  onButtonClick?: () => void;
+}
 
 function PageHeader({
   title,
@@ -15,7 +23,7 @@ function PageHeader({
   buttonLabel,
   buttonIcon: Icon,
   onButtonClick,
-}) {
+}: PageHeaderProps) {
   const textColor = useColorModeValue("gray.600", "gray.300");
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -48,13 +56,5 @@ function PageHeader({
     </Stack>
   );
 }
-
-PageHeader.propTypes = {
-  title: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
-  buttonLabel: PropTypes.string,
-  buttonIcon: PropTypes.elementType,
-  onButtonClick: PropTypes.func,
-};
 
 export default PageHeader;

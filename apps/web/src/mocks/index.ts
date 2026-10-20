@@ -9,4 +9,3 @@ export {
   loginTrendsData,
 } from "./analyticsMock";
 export { dashboardActivityData, latestUpdatesData } from "./dashboardMock";
-export { AVAILABLE_PERMISSIONS } from "./permissionsMock";

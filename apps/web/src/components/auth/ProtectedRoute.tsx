@@ -1,10 +1,14 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
-import PropTypes from "prop-types";
 import { authService } from "../../services/authService";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
-function ProtectedRoute({ children, allowedRoles }) {
+interface ProtectedRouteProps {
+  children?: ReactNode;
+  allowedRoles?: string[];
+}
+
+function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = authService.isAuthenticated();
@@ -26,10 +30,5 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   return children || <Outlet />;
 }
-
-ProtectedRoute.propTypes = {
-  children: PropTypes.node,
-  allowedRoles: PropTypes.arrayOf(PropTypes.string),
-};
 
 export default ProtectedRoute;

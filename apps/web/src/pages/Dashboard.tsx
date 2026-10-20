@@ -20,14 +20,27 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from "@heroicons/react/24/outline";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
-import PropTypes from "prop-types";
+import type { ComponentType } from "react";
+import {
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip as ChartTooltip,
+} from "recharts";
 import {
   dashboardActivityData,
   latestUpdatesData,
 } from "../mocks/dashboardMock";
 
-function StatCard({ title, stat, icon, trend, helpText }) {
+interface StatCardProps {
+  title: string;
+  stat: string;
+  icon: ComponentType<{ className?: string }>;
+  trend: number;
+  helpText: string;
+}
+
+function StatCard({ title, stat, icon, trend, helpText }: StatCardProps) {
   const bgColor = useColorModeValue("white", "gray.800");
   const iconBg = useColorModeValue("rbac-system.600", "rbac-system.800");
   const iconGradient = useColorModeValue(
@@ -76,15 +89,6 @@ function StatCard({ title, stat, icon, trend, helpText }) {
   );
 }
 
-StatCard.propTypes = {
-  title: PropTypes.string.isRequired,
-  stat: PropTypes.string.isRequired,
-  icon: PropTypes.elementType.isRequired,
-  trend: PropTypes.number.isRequired,
-  helpText: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-};
-
 function Dashboard() {
   const bgColor = useColorModeValue("white", "gray.800");
 
@@ -99,7 +103,6 @@ function Dashboard() {
               icon={UsersIcon}
               trend={12}
               helpText="vs last month"
-              color="blue"
             />
           </Box>
         </Tooltip>
@@ -112,7 +115,6 @@ function Dashboard() {
               icon={KeyIcon}
               trend={-5}
               helpText="vs last month"
-              color="purple"
             />
           </Box>
         </Tooltip>
@@ -125,7 +127,6 @@ function Dashboard() {
               icon={ChartBarIcon}
               trend={8}
               helpText="vs last month"
-              color="green"
             />
           </Box>
         </Tooltip>
@@ -138,7 +139,6 @@ function Dashboard() {
               icon={ClockIcon}
               trend={20}
               helpText="vs last month"
-              color="orange"
             />
           </Box>
         </Tooltip>
@@ -177,7 +177,7 @@ function Dashboard() {
                       r: 6,
                     }}
                   />
-                  <Tooltip />
+                  <ChartTooltip />
                 </LineChart>
               </ResponsiveContainer>
             </Box>

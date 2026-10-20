@@ -43,12 +43,16 @@ import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
+import type { UiUser } from "../types";
+import type { UserFormValues } from "../components/users/UserForm";
+
+type Filters = Record<"search" | "role" | "status" | "department", string>;
 
 function Users() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<UiUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<UiUser | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UiUser | null>(null);
   const {
     isOpen: isFormOpen,
     onOpen: openForm,
@@ -75,7 +79,7 @@ function Users() {
     "linear(to-br, rbac-system.800, rbac-system.600)",
   );
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     search: "",
     role: "",
     status: "",
@@ -118,17 +122,17 @@ function Users() {
     openForm();
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = (user: UiUser) => {
     setSelectedUser(user);
     openForm();
   };
 
-  const handleDeleteClick = (user) => {
+  const handleDeleteClick = (user: UiUser) => {
     setUserToDelete(user);
     openDelete();
   };
 
-  const handleUserSubmit = async (userData) => {
+  const handleUserSubmit = async (userData: UserFormValues) => {
     try {
       if (selectedUser) {
         await userService.updateUser(selectedUser.id, userData);
@@ -147,7 +151,7 @@ function Users() {
       }
       loadUsers();
       closeForm();
-    } catch (error) {
+    } catch {
       toast({
         title: "Error saving user",
         status: "error",
@@ -157,6 +161,7 @@ function Users() {
   };
 
   const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
     try {
       await userService.deleteUser(userToDelete.id);
       toast({
@@ -166,7 +171,7 @@ function Users() {
       });
       loadUsers();
       closeDelete();
-    } catch (error) {
+    } catch {
       toast({
         title: "Error deleting user",
         status: "error",
@@ -175,17 +180,17 @@ function Users() {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | undefined) => {
     try {
-      return format(new Date(date), "MMM dd, yyyy");
+      return format(new Date(date ?? ""), "MMM dd, yyyy");
     } catch {
       return "N/A";
     }
   };
 
-  const formatLastActive = (date) => {
+  const formatLastActive = (date: string | undefined) => {
     try {
-      return formatDistanceToNow(new Date(date), { addSuffix: true });
+      return formatDistanceToNow(new Date(date ?? ""), { addSuffix: true });
     } catch {
       return "N/A";
     }
@@ -209,14 +214,14 @@ function Users() {
     return matchesSearch && matchesRole && matchesStatus && matchesDepartment;
   });
 
-  const handleFilterChange = (field, value) => {
+  const handleFilterChange = (field: keyof Filters, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const renderMobileCard = (user) => (
+  const renderMobileCard = (user: UiUser) => (
     <Card
       key={user.id}
       bg={bgColor}

@@ -56,6 +56,10 @@ export interface SessionUiUser {
   role: string;
   status?: Status;
   department?: string;
+  phone?: string;
+  location?: string;
+  joinDate?: string;
+  lastActive?: string;
   permissions: string[];
 }
 

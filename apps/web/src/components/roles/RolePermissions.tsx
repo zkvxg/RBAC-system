@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Box,
   VStack,
@@ -9,10 +8,20 @@ import {
   HStack,
   Divider,
 } from "@chakra-ui/react";
-import { AVAILABLE_PERMISSIONS } from "../../mocks/permissionsMock";
+import {
+  PERMISSION_GROUPS,
+  type PermissionOption,
+} from "../../config/permissionGroups";
+import type { UiRole } from "../../types";
 
-function RolePermissions({ role, onSave, onCancel }) {
-  const [selectedPermissions, setSelectedPermissions] = useState([]);
+interface RolePermissionsProps {
+  role?: Pick<UiRole, "id" | "name" | "permissions"> | null;
+  onSave: (permissions: string[]) => void;
+  onCancel: () => void;
+}
+
+function RolePermissions({ role, onSave, onCancel }: RolePermissionsProps) {
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     if (role?.permissions) {
@@ -20,7 +29,7 @@ function RolePermissions({ role, onSave, onCancel }) {
     }
   }, [role]);
 
-  const handlePermissionToggle = (permissionId) => {
+  const handlePermissionToggle = (permissionId: string) => {
     setSelectedPermissions((prev) => {
       if (prev.includes(permissionId)) {
         return prev.filter((id) => id !== permissionId);
@@ -29,13 +38,13 @@ function RolePermissions({ role, onSave, onCancel }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSave(selectedPermissions);
   };
 
-  const handleSelectAll = (categoryPermissions) => {
-    const allPermissionIds = categoryPermissions.map((p) => p.id);
+  const handleSelectAll = (categoryPermissions: PermissionOption[]) => {
+    const allPermissionIds: string[] = categoryPermissions.map((p) => p.id);
     const allSelected = categoryPermissions.every((p) =>
       selectedPermissions.includes(p.id),
     );
@@ -60,7 +69,7 @@ function RolePermissions({ role, onSave, onCancel }) {
   return (
     <Box as="form" onSubmit={handleSubmit}>
       <VStack spacing={6} align="stretch">
-        {Object.entries(AVAILABLE_PERMISSIONS).map(
+        {Object.entries(PERMISSION_GROUPS).map(
           ([category, { name, permissions }]) => {
             const allSelected = permissions.every((p) =>
               selectedPermissions.includes(p.id),
@@ -111,15 +120,5 @@ function RolePermissions({ role, onSave, onCancel }) {
     </Box>
   );
 }
-
-RolePermissions.propTypes = {
-  role: PropTypes.shape({
-    id: PropTypes.number,
-    name: PropTypes.string,
-    permissions: PropTypes.arrayOf(PropTypes.string),
-  }),
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
 
 export default RolePermissions;

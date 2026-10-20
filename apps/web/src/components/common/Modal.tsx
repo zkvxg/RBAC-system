@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import type { ReactNode } from "react";
 import {
   Modal as ChakraModal,
   ModalOverlay,
@@ -9,7 +9,14 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 
-function Modal({ isOpen, onClose, title, children }) {
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+}
+
+function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue(
     "rbac-system.100",
@@ -48,12 +55,5 @@ function Modal({ isOpen, onClose, title, children }) {
     </ChakraModal>
   );
 }
-
-Modal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-};
 
 export default Modal;

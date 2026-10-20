@@ -20,7 +20,7 @@ import {
   InputRightElement,
   Divider,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -54,7 +54,7 @@ function Login() {
     },
   ];
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
@@ -67,7 +67,7 @@ function Login() {
         duration: 3000,
       });
       navigate("/dashboard");
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
       toast({
         title: "Login Failed",
@@ -135,7 +135,6 @@ function Login() {
           w={{ base: "full", md: "600px" }}
           maxW="100%"
           position="relative"
-          s
           boxShadow="xl"
           borderRadius="xl"
           border="1px solid"

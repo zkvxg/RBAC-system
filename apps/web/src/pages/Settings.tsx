@@ -24,7 +24,10 @@ import {
   InputRightElement,
   Select,
 } from "@chakra-ui/react";
-import { useState, useRef } from "react";
+import { useState, useRef, type ChangeEvent, type FormEvent } from "react";
+import axios from "axios";
+import type { ApiError } from "@rbac/shared";
+import { errorMessage } from "../utils/errors";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import {
@@ -56,10 +59,12 @@ function Settings() {
 
   const textColor = useColorModeValue("gray.600", "gray.300");
   const toast = useToast();
-  const fileInputRef = useRef(null);
-  const [photoURL, setPhotoURL] = useState(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoURL, setPhotoURL] = useState<string | undefined>(undefined);
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -67,7 +72,9 @@ function Settings() {
     }));
   };
 
-  const handleNotificationChange = (key) => {
+  const handleNotificationChange = (
+    key: keyof typeof formData.notifications,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       notifications: {
@@ -77,8 +84,9 @@ function Settings() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user?.id) return;
     try {
       const updated = await userService.updateUser(user.id, {
         name: formData.name,
@@ -98,14 +106,16 @@ function Settings() {
     } catch (err) {
       toast({
         title: "Update failed",
-        description: err?.response?.data?.error || err.message,
+        description:
+          (axios.isAxiosError<ApiError>(err) && err.response?.data?.message) ||
+          errorMessage(err),
         status: "error",
         duration: 4000,
       });
     }
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
@@ -128,12 +138,14 @@ function Settings() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoURL(reader.result);
+        setPhotoURL(
+          typeof reader.result === "string" ? reader.result : undefined,
+        );
         toast({
           title: "Photo Updated",
           description: "Your profile photo has been updated successfully.",
@@ -146,7 +158,7 @@ function Settings() {
   };
 
   const handleRemovePhoto = () => {
-    setPhotoURL(null);
+    setPhotoURL(undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

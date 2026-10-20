@@ -25,11 +25,16 @@ import {
 } from "@heroicons/react/24/outline";
 import { authService } from "../services/authService";
 import { format } from "date-fns";
-import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 
-function ProfileField({ icon, label, value }) {
+interface ProfileFieldProps {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}
+
+function ProfileField({ icon, label, value }: ProfileFieldProps) {
   const iconBg = useColorModeValue("rbac-system.600", "rbac-system.800");
   const iconGradient = useColorModeValue(
     "linear(to-br, rbac-system.700, rbac-system.500)",
@@ -60,12 +65,6 @@ function ProfileField({ icon, label, value }) {
   );
 }
 
-ProfileField.propTypes = {
-  icon: PropTypes.elementType.isRequired,
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-};
-
 function Profile() {
   const [user, setUser] = useState(() => authService.getCurrentUser());
 
@@ -82,7 +81,7 @@ function Profile() {
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
     try {
       if (!dateString) return "Not available";
       return format(new Date(dateString), "MMM dd, yyyy");
@@ -92,7 +91,7 @@ function Profile() {
     }
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString?: string) => {
     try {
       if (!dateString) return "Not available";
       return format(new Date(dateString), "MMM dd, yyyy hh:mm a");

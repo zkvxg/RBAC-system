@@ -1,5 +1,5 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import type { RoleFormData, Status } from "../../types";
 import {
   FormControl,
   FormLabel,
@@ -13,19 +13,27 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-function RoleForm({ role, onSubmit, onCancel }) {
-  const [formData, setFormData] = useState({
+interface RoleFormProps {
+  role?: Partial<RoleFormData> | null;
+  onSubmit: (data: Required<RoleFormData>) => void;
+  onCancel: () => void;
+}
+
+type RoleFormErrors = Partial<Record<keyof RoleFormData, string>>;
+
+function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
+  const [formData, setFormData] = useState<Required<RoleFormData>>({
     name: role?.name || "",
     description: role?.description || "",
     permissions: role?.permissions || [],
-    status: role?.status || "Active",
+    status: (role?.status || "Active") as Status,
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<RoleFormErrors>({});
   const toast = useToast();
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: RoleFormErrors = {};
     if (!formData.name.trim()) {
       newErrors.name = "Role name is required";
     }
@@ -36,7 +44,7 @@ function RoleForm({ role, onSubmit, onCancel }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       onSubmit(formData);
@@ -50,8 +58,11 @@ function RoleForm({ role, onSubmit, onCancel }) {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const name = e.target.name as keyof RoleFormData;
+    const { value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -104,16 +115,5 @@ function RoleForm({ role, onSubmit, onCancel }) {
     </form>
   );
 }
-
-RoleForm.propTypes = {
-  role: PropTypes.shape({
-    name: PropTypes.string,
-    description: PropTypes.string,
-    permissions: PropTypes.arrayOf(PropTypes.string),
-    status: PropTypes.string,
-  }),
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
 
 export default RoleForm;

@@ -44,12 +44,15 @@ import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import RoleForm from "../components/roles/RoleForm";
 import RolePermissions from "../components/roles/RolePermissions";
+import type { RoleFormData, UiRole } from "../types";
+
+type Filters = Record<"search" | "status", string>;
 
 function Roles() {
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState<UiRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [roleToDelete, setRoleToDelete] = useState(null);
+  const [selectedRole, setSelectedRole] = useState<UiRole | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<UiRole | null>(null);
   const {
     isOpen: isFormOpen,
     onOpen: openForm,
@@ -76,7 +79,7 @@ function Roles() {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     search: "",
     status: "",
   });
@@ -110,22 +113,22 @@ function Roles() {
     openForm();
   };
 
-  const handleEditRole = (role) => {
+  const handleEditRole = (role: UiRole) => {
     setSelectedRole(role);
     openForm();
   };
 
-  const handleDeleteClick = (role) => {
+  const handleDeleteClick = (role: UiRole) => {
     setRoleToDelete(role);
     openDelete();
   };
 
-  const handlePermissionsClick = (role) => {
+  const handlePermissionsClick = (role: UiRole) => {
     setSelectedRole(role);
     openPermissions();
   };
 
-  const handleRoleSubmit = async (roleData) => {
+  const handleRoleSubmit = async (roleData: RoleFormData) => {
     try {
       if (selectedRole) {
         await roleService.updateRole(selectedRole.id, roleData);
@@ -153,7 +156,8 @@ function Roles() {
     }
   };
 
-  const handlePermissionsSubmit = async (permissions) => {
+  const handlePermissionsSubmit = async (permissions: string[]) => {
+    if (!selectedRole) return;
     try {
       await roleService.updateRole(selectedRole.id, {
         ...selectedRole,
@@ -176,6 +180,7 @@ function Roles() {
   };
 
   const handleDeleteConfirm = async () => {
+    if (!roleToDelete) return;
     try {
       await roleService.deleteRole(roleToDelete.id);
       toast({
@@ -194,7 +199,7 @@ function Roles() {
     }
   };
 
-  const getRoleBadgeGradient = (roleName) => {
+  const getRoleBadgeGradient = (roleName: string) => {
     switch (roleName.toLowerCase()) {
       case "admin":
         return "linear(to-r, rbac-system.800, rbac-system.700)";
@@ -207,18 +212,18 @@ function Roles() {
     }
   };
 
-  const getRoleBadgeTextColor = (roleName) =>
+  const getRoleBadgeTextColor = (roleName: string) =>
     roleName.toLowerCase() === "employee" ? "rbac-system.900" : "white";
 
-  const getStatusBadgeGradient = (status) =>
+  const getStatusBadgeGradient = (status: string) =>
     status === "Active"
       ? "linear(to-r, rbac-system.700, rbac-system.600)"
       : "linear(to-r, rbac-system.300, rbac-system.400)";
 
-  const getStatusBadgeTextColor = (status) =>
+  const getStatusBadgeTextColor = (status: string) =>
     status === "Active" ? "white" : "rbac-system.900";
 
-  const handleFilterChange = (field, value) => {
+  const handleFilterChange = (field: keyof Filters, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
@@ -237,7 +242,7 @@ function Roles() {
     return matchesSearch && matchesStatus;
   });
 
-  const renderMobileCard = (role) => (
+  const renderMobileCard = (role: UiRole) => (
     <Card
       key={role.id}
       bg={bgColor}

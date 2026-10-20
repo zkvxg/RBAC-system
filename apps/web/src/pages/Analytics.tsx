@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import {
   Box,
   Card,
@@ -32,7 +32,7 @@ import {
   loginTrendsData,
 } from "../mocks/analyticsMock";
 
-const generateDataForRange = (range) => {
+const generateDataForRange = (range: string) => {
   switch (range) {
     case "24h":
       return {
@@ -105,7 +105,7 @@ function Analytics() {
 
   const filteredData = generateDataForRange(timeRange);
 
-  const handleTimeRangeChange = (e) => {
+  const handleTimeRangeChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setTimeRange(e.target.value);
   };
 

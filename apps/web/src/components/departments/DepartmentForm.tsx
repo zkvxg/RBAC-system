@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import {
   FormControl,
   FormLabel,
@@ -16,10 +15,41 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { userService } from "../../services/userService";
+import type { Department, Status, UiUser } from "../../types";
 
-function DepartmentForm({ department, onSubmit, onCancel }) {
-  const [managers, setManagers] = useState([]);
-  const [formData, setFormData] = useState({
+interface DepartmentFormValues {
+  name: string;
+  head: string;
+  headId: string;
+  budget: string | number;
+  budgetSpent: string | number;
+  location: string;
+  status: Status;
+  description: string;
+  projects: string | number;
+  teamLeads: string[];
+}
+
+export type DepartmentSubmitData = Omit<
+  DepartmentFormValues,
+  "budget" | "budgetSpent" | "projects"
+> & { budget: number; budgetSpent: number; projects: number };
+
+interface DepartmentFormProps {
+  department?: Partial<Department> | null;
+  onSubmit: (data: DepartmentSubmitData) => void;
+  onCancel: () => void;
+}
+
+type DepartmentFormErrors = Partial<Record<keyof DepartmentFormValues, string>>;
+
+function DepartmentForm({
+  department,
+  onSubmit,
+  onCancel,
+}: DepartmentFormProps) {
+  const [managers, setManagers] = useState<UiUser[]>([]);
+  const [formData, setFormData] = useState<DepartmentFormValues>({
     name: department?.name || "",
     head: department?.head || "",
     headId: department?.headId || "",
@@ -31,7 +61,7 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
     projects: department?.projects || 0,
     teamLeads: department?.teamLeads || [],
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<DepartmentFormErrors>({});
   const toast = useToast();
 
   useEffect(() => {
@@ -55,7 +85,7 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
             }));
           }
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error loading managers",
           description: "Could not load available managers",
@@ -68,7 +98,7 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
   }, [department]);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: DepartmentFormErrors = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "Department name is required";
@@ -80,7 +110,7 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
 
     if (!formData.budget) {
       newErrors.budget = "Budget is required";
-    } else if (isNaN(formData.budget) || Number(formData.budget) <= 0) {
+    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) <= 0) {
       newErrors.budget = "Please enter a valid budget amount";
     }
 
@@ -96,7 +126,7 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       const selectedManager = managers.find(
@@ -112,8 +142,11 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const name = e.target.name as keyof DepartmentFormValues;
+    const { value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -259,22 +292,5 @@ function DepartmentForm({ department, onSubmit, onCancel }) {
     </form>
   );
 }
-
-DepartmentForm.propTypes = {
-  department: PropTypes.shape({
-    name: PropTypes.string,
-    head: PropTypes.string,
-    headId: PropTypes.string,
-    budget: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    budgetSpent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    location: PropTypes.string,
-    status: PropTypes.string,
-    description: PropTypes.string,
-    projects: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    teamLeads: PropTypes.arrayOf(PropTypes.string),
-  }),
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
 
 export default DepartmentForm;
