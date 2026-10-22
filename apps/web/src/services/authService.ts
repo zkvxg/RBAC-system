@@ -1,20 +1,26 @@
-import axios from "axios";
+import { api } from "../api/client";
 import {
   hasPermission,
   type LoginResponse,
   type Permission,
 } from "@rbac/shared";
 import { AUTH_MOCK_USERS } from "../mocks/authMock";
-import { API_BASE_URL, USE_MOCKS, toUiRole } from "../config/runtime";
+import { USE_MOCKS, toUiRole } from "../config/runtime";
+import {
+  clearSession,
+  getSessionUser,
+  getToken,
+  saveSession,
+} from "../auth/session";
 import type { SessionUiUser } from "../types";
 
 class AuthService {
   async login(email: string, password: string): Promise<SessionUiUser> {
     if (!USE_MOCKS) {
-      const { data } = await axios.post<LoginResponse>(
-        `${API_BASE_URL}/api/auth/login`,
-        { email, password },
-      );
+      const { data } = await api.post<LoginResponse>("/auth/login", {
+        email,
+        password,
+      });
       const userForUi: SessionUiUser = {
         id: String(data.user.id),
         name: data.user.username || "User",
@@ -25,8 +31,7 @@ class AuthService {
           ? data.user.permissions
           : [],
       };
-      localStorage.setItem("user", JSON.stringify(userForUi));
-      localStorage.setItem("token", data.token);
+      saveSession(data.token, userForUi);
       return userForUi;
     }
 
@@ -38,23 +43,20 @@ class AuthService {
     }
     const { password: _password, ...userWithoutPassword } = user;
     const token = `mock-jwt-token-${user.role.toLowerCase()}`;
-    localStorage.setItem("user", JSON.stringify(userWithoutPassword));
-    localStorage.setItem("token", token);
+    saveSession(token, userWithoutPassword);
     return userWithoutPassword;
   }
 
   logout() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    clearSession();
   }
 
   getCurrentUser(): SessionUiUser | null {
-    const user = localStorage.getItem("user");
-    return user ? (JSON.parse(user) as SessionUiUser) : null;
+    return getSessionUser();
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem("token") && !!this.getCurrentUser();
+    return !!getToken() && !!this.getCurrentUser();
   }
 
   hasRole(roles: string[]): boolean {

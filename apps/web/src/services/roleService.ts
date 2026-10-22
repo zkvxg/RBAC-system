@@ -1,9 +1,9 @@
-import axios from "axios";
+import { api } from "../api/client";
 import type { RoleDto } from "@rbac/shared";
 import { userService } from "./userService";
 import { MOCK_ROLES } from "../mocks/rolesMock";
 import { USE_MOCKS, toUiRole } from "../config/runtime";
-import { API_URL, getAuthHeaders, rethrow } from "./http";
+import { rethrow } from "./http";
 import type { DeleteResult, RoleFormData, UiRole, UiUser } from "../types";
 
 const handleError = rethrow("API");
@@ -41,9 +41,7 @@ class RoleService {
   async getRoles(): Promise<UiRole[]> {
     try {
       if (!USE_MOCKS) {
-        const { data } = await axios.get<RoleDto[]>(`${API_URL}/roles`, {
-          headers: getAuthHeaders(),
-        });
+        const { data } = await api.get<RoleDto[]>(`/roles`);
         const users = await userService.getUsers();
         return withUserCounts(data.map(mapApiRoleToUi), users);
       }
@@ -69,11 +67,7 @@ class RoleService {
   async createRole(roleData: RoleFormData): Promise<UiRole> {
     try {
       if (!USE_MOCKS) {
-        const { data } = await axios.post<RoleDto>(
-          `${API_URL}/roles`,
-          toPayload(roleData),
-          { headers: getAuthHeaders() },
-        );
+        const { data } = await api.post<RoleDto>(`/roles`, toPayload(roleData));
         return mapApiRoleToUi(data);
       }
       const newRole: UiRole = {
@@ -95,10 +89,9 @@ class RoleService {
   ): Promise<UiRole | undefined> {
     try {
       if (!USE_MOCKS) {
-        const { data } = await axios.put<RoleDto>(
-          `${API_URL}/roles/${id}`,
+        const { data } = await api.put<RoleDto>(
+          `/roles/${id}`,
           toPayload(roleData),
-          { headers: getAuthHeaders() },
         );
         return mapApiRoleToUi(data);
       }
@@ -118,9 +111,7 @@ class RoleService {
   async deleteRole(id: number): Promise<DeleteResult | undefined> {
     try {
       if (!USE_MOCKS) {
-        await axios.delete(`${API_URL}/roles/${id}`, {
-          headers: getAuthHeaders(),
-        });
+        await api.delete(`/roles/${id}`);
         return { success: true };
       }
       const index = MOCK_ROLES.findIndex((r) => r.id === id);

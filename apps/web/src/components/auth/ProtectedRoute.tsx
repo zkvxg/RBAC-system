@@ -1,5 +1,6 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { getToken } from "../../auth/session";
 import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +15,7 @@ function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const isAuthenticated = authService.isAuthenticated();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) {
       navigate("/login", { replace: true });
     }

@@ -37,6 +37,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
+import { updateSessionUser } from "../auth/session";
 
 function Settings() {
   const user = authService.getCurrentUser();
@@ -95,8 +96,7 @@ function Settings() {
         location: formData.location,
       });
       const merged = { ...user, ...updated };
-      localStorage.setItem("user", JSON.stringify(merged));
-      window.dispatchEvent(new CustomEvent("user-updated", { detail: merged }));
+      updateSessionUser(merged);
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",

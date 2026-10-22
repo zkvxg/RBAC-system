@@ -1,8 +1,8 @@
-import axios from "axios";
+import { api } from "../api/client";
 import type { Paginated, RoleDto, UserDto } from "@rbac/shared";
 import { MOCK_USERS } from "../mocks/usersMock";
 import { USE_MOCKS, toApiRoleName, toUiRole } from "../config/runtime";
-import { API_URL, getAuthHeaders, rethrow } from "./http";
+import { rethrow } from "./http";
 import type { DeleteResult, UiUser, UserFormData } from "../types";
 
 const handleError = rethrow("API");
@@ -35,9 +35,7 @@ const buildBackendPayload = (userData: UserFormData) => ({
 
 async function resolveRoleId(uiRoleName: string | undefined): Promise<number> {
   const apiRole = toApiRoleName(uiRoleName);
-  const { data } = await axios.get<RoleDto[]>(`${API_URL}/roles`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get<RoleDto[]>(`/roles`);
   const match = data.find((r) => String(r.name).toLowerCase() === apiRole);
   if (!match) {
     throw new Error(`Role ${apiRole} does not exist in backend`);
@@ -54,10 +52,9 @@ class UserService {
   async getUsers(): Promise<UiUser[]> {
     try {
       if (!USE_MOCKS) {
-        const { data } = await axios.get<Paginated<UserDto>>(
-          `${API_URL}/users`,
-          { headers: getAuthHeaders(), params: { limit: 100 } },
-        );
+        const { data } = await api.get<Paginated<UserDto>>(`/users`, {
+          params: { limit: 100 },
+        });
         return data.data.map(mapApiUserToUi);
       }
       return MOCK_USERS;
@@ -69,9 +66,7 @@ class UserService {
   async getUserById(id: string): Promise<UiUser | undefined> {
     try {
       if (!USE_MOCKS) {
-        const { data } = await axios.get<UserDto>(`${API_URL}/users/${id}`, {
-          headers: getAuthHeaders(),
-        });
+        const { data } = await api.get<UserDto>(`/users/${id}`);
         return mapApiUserToUi(data);
       }
       return MOCK_USERS.find((u) => u.id === id);
@@ -89,11 +84,7 @@ class UserService {
           password: userData.password || "test123",
           roleId,
         };
-        const { data } = await axios.post<UserDto>(
-          `${API_URL}/users`,
-          payload,
-          { headers: getAuthHeaders() },
-        );
+        const { data } = await api.post<UserDto>(`/users`, payload);
         return mapApiUserToUi(data);
       }
 
@@ -141,19 +132,14 @@ class UserService {
         }
       }
 
-      const { data } = await axios.put<UserDto>(
-        `${API_URL}/users/${id}`,
+      const { data } = await api.put<UserDto>(
+        `/users/${id}`,
         buildBackendPayload(userData),
-        { headers: getAuthHeaders() },
       );
 
       if (userData.role) {
         const roleId = await resolveRoleId(userData.role);
-        await axios.put(
-          `${API_URL}/users/${id}/role`,
-          { roleId },
-          { headers: getAuthHeaders() },
-        );
+        await api.put(`/users/${id}/role`, { roleId });
       }
 
       return mapApiUserToUi(data);
@@ -172,9 +158,7 @@ class UserService {
         }
       }
 
-      await axios.delete(`${API_URL}/users/${id}`, {
-        headers: getAuthHeaders(),
-      });
+      await api.delete(`/users/${id}`);
       return { success: true };
     } catch (error) {
       return handleError(error);
