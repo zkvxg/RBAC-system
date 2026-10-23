@@ -44,6 +44,7 @@ import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
 import type { UiUser } from "../types";
 import type { UserFormValues } from "../components/users/UserForm";
+import { generateTemporaryPassword } from "../utils/password";
 import {
   useUsers,
   useCreateUser,
@@ -128,11 +129,17 @@ function Users() {
           duration: 3000,
         });
       } else {
-        await createUser.mutateAsync(userData);
+        const password = userData.password || generateTemporaryPassword();
+        await createUser.mutateAsync({ ...userData, password });
         toast({
           title: "User created successfully",
+          description: userData.password
+            ? undefined
+            : `Temporary password: ${password}`,
           status: "success",
-          duration: 3000,
+          duration: userData.password ? 3000 : null,
+          isClosable: true,
+          position: "top-right",
         });
       }
       closeForm();

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { validatePassword } from "../utils/passwordPolicy";
+import { emailSchema, passwordSchema } from "@rbac/shared";
 
 export const required = (message: string) => ({
   error: (issue: { input?: unknown }) =>
@@ -10,11 +10,7 @@ export const idParams = z.object({
   id: z.coerce.number().int().positive("id must be a positive integer"),
 });
 
-export const email = z
-  .string(required("email is required"))
-  .trim()
-  .toLowerCase()
-  .pipe(z.email("Invalid email format"));
+export const email = z.string(required("email is required")).pipe(emailSchema);
 
 export const username = z
   .string(required("username is required"))
@@ -24,10 +20,7 @@ export const username = z
 
 export const password = z
   .string(required("password is required"))
-  .check((ctx) => {
-    const message = validatePassword(ctx.value);
-    if (message) ctx.issues.push({ code: "custom", message, input: ctx.value });
-  });
+  .pipe(passwordSchema);
 
 export const optionalText = z.string().trim().max(255).nullish();
 

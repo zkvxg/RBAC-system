@@ -4,6 +4,7 @@ import {
   hasPermission,
   isPermission,
   isSuperuserRole,
+  validatePassword,
   type ListUsersQuery,
   type Permission,
 } from "@rbac/shared";
@@ -115,6 +116,8 @@ export const handlers = [
     if (denied) return denied;
     const body = await request.json();
     const email = String(body.email ?? "").toLowerCase();
+    const passwordError = validatePassword(body.password);
+    if (passwordError) return error(400, passwordError);
     if (db.users.some((u) => u.email === email)) {
       return error(409, "User already exists");
     }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { required, idParams } from "./common";
-import { isPermission } from "../config/permissions";
+import { permissionKeySchema } from "@rbac/shared";
 
 const name = z
   .string(required("name is required"))
@@ -14,15 +14,12 @@ const description = z
   .min(1, "description is required")
   .max(255);
 
-const permissions = z.array(
-  z.string().refine(isPermission, { message: "Unknown permission" }),
-  {
-    error: (issue) =>
-      issue.input === undefined
-        ? "permissions is required"
-        : "permissions must be an array",
-  },
-);
+const permissions = z.array(permissionKeySchema, {
+  error: (issue) =>
+    issue.input === undefined
+      ? "permissions is required"
+      : "permissions must be an array",
+});
 
 export const createRole = {
   body: z.object({ name, description, permissions }),

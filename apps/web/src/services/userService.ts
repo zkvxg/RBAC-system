@@ -68,7 +68,7 @@ class UserService {
       const roleId = await resolveRoleId(userData.role);
       const { data } = await api.post<UserDto>("/users", {
         ...buildBackendPayload(userData),
-        password: userData.password || "test123",
+        password: userData.password,
         roleId,
       });
       return mapApiUserToUi(data);

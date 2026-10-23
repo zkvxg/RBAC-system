@@ -1,5 +1,6 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import type { RoleFormData, Status } from "../../types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   FormControl,
   FormLabel,
@@ -12,92 +13,71 @@ import {
   FormErrorMessage,
   useToast,
 } from "@chakra-ui/react";
+import { permissionKeySchema } from "@rbac/shared";
+import type { RoleFormData } from "../../types";
+
+const roleFormSchema = z.object({
+  name: z.string().trim().min(1, "Role name is required").max(50),
+  description: z.string().trim().min(1, "Description is required").max(255),
+  permissions: z.array(permissionKeySchema),
+  status: z.enum(["Active", "Inactive"]),
+});
+
+type RoleFormInput = z.input<typeof roleFormSchema>;
+type RoleFormValues = z.output<typeof roleFormSchema>;
 
 interface RoleFormProps {
   role?: Partial<RoleFormData> | null;
-  onSubmit: (data: Required<RoleFormData>) => void;
+  onSubmit: (data: RoleFormValues) => void;
   onCancel: () => void;
 }
 
-type RoleFormErrors = Partial<Record<keyof RoleFormData, string>>;
-
 function RoleForm({ role, onSubmit, onCancel }: RoleFormProps) {
-  const [formData, setFormData] = useState<Required<RoleFormData>>({
-    name: role?.name || "",
-    description: role?.description || "",
-    permissions: role?.permissions || [],
-    status: (role?.status || "Active") as Status,
+  const toast = useToast();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RoleFormInput, unknown, RoleFormValues>({
+    resolver: zodResolver(roleFormSchema),
+    defaultValues: {
+      name: role?.name || "",
+      description: role?.description || "",
+      permissions: role?.permissions || [],
+      status: role?.status || "Active",
+    },
   });
 
-  const [errors, setErrors] = useState<RoleFormErrors>({});
-  const toast = useToast();
-
-  const validateForm = () => {
-    const newErrors: RoleFormErrors = {};
-    if (!formData.name.trim()) {
-      newErrors.name = "Role name is required";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-    } else {
-      toast({
-        title: "Validation Error",
-        description: "Please check the form for errors",
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const name = e.target.name as keyof RoleFormData;
-    const { value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
+  const onInvalid = () =>
+    toast({
+      title: "Validation Error",
+      description: "Please check the form for errors",
+      status: "error",
+      duration: 3000,
+    });
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
       <VStack spacing={4}>
         <FormControl isInvalid={!!errors.name} isRequired>
           <FormLabel>Role Name</FormLabel>
-          <Input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter role name"
-          />
-          <FormErrorMessage>{errors.name}</FormErrorMessage>
+          <Input {...register("name")} placeholder="Enter role name" />
+          <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
         </FormControl>
 
         <FormControl isInvalid={!!errors.description} isRequired>
           <FormLabel>Description</FormLabel>
           <Textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
+            {...register("description")}
             placeholder="Enter role description"
             rows={3}
           />
-          <FormErrorMessage>{errors.description}</FormErrorMessage>
+          <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
         </FormControl>
 
         <FormControl>
           <FormLabel>Status</FormLabel>
-          <Select name="status" value={formData.status} onChange={handleChange}>
+          <Select {...register("status")}>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </Select>

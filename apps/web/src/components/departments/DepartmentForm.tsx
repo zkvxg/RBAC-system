@@ -1,4 +1,6 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   FormControl,
   FormLabel,
@@ -7,32 +9,45 @@ import {
   Button,
   VStack,
   HStack,
+  FormErrorMessage,
   InputGroup,
   InputLeftAddon,
-  FormErrorMessage,
   SimpleGrid,
   Textarea,
 } from "@chakra-ui/react";
 import { useUsers } from "../../hooks/queries";
-import type { Department, Status } from "../../types";
+import type { Department } from "../../types";
 
-interface DepartmentFormValues {
-  name: string;
+const amount = z
+  .union([z.literal(""), z.coerce.number().min(0)])
+  .transform((value) => (value === "" ? 0 : value));
+
+const departmentFormSchema = z.object({
+  name: z.string().trim().min(1, "Department name is required"),
+  description: z.string().trim().min(1, "Description is required"),
+  headId: z.string().min(1, "Department head is required"),
+  budget: z
+    .string()
+    .min(1, "Budget is required")
+    .transform(Number)
+    .pipe(
+      z
+        .number({ error: "Please enter a valid budget amount" })
+        .positive("Please enter a valid budget amount"),
+    ),
+  budgetSpent: amount,
+  location: z.string().trim().min(1, "Location is required"),
+  projects: amount,
+  status: z.enum(["Active", "Inactive"]),
+});
+
+type DepartmentFormInput = z.input<typeof departmentFormSchema>;
+type DepartmentFormOutput = z.output<typeof departmentFormSchema>;
+
+export type DepartmentSubmitData = DepartmentFormOutput & {
   head: string;
-  headId: string;
-  budget: string | number;
-  budgetSpent: string | number;
-  location: string;
-  status: Status;
-  description: string;
-  projects: string | number;
   teamLeads: string[];
-}
-
-export type DepartmentSubmitData = Omit<
-  DepartmentFormValues,
-  "budget" | "budgetSpent" | "projects"
-> & { budget: number; budgetSpent: number; projects: number };
+};
 
 interface DepartmentFormProps {
   department?: Partial<Department> | null;
@@ -40,7 +55,8 @@ interface DepartmentFormProps {
   onCancel: () => void;
 }
 
-type DepartmentFormErrors = Partial<Record<keyof DepartmentFormValues, string>>;
+const asText = (value: number | undefined) =>
+  value === undefined ? "" : String(value);
 
 function DepartmentForm({
   department,
@@ -51,122 +67,55 @@ function DepartmentForm({
   const managers = users.filter(
     (user) => user.role === "Manager" && user.status === "Active",
   );
-  const [formData, setFormData] = useState<DepartmentFormValues>({
-    name: department?.name || "",
-    head: department?.head || "",
-    headId: department?.headId || "",
-    budget: department?.budget || "",
-    budgetSpent: department?.budgetSpent || 0,
-    location: department?.location || "",
-    status: department?.status || "Active",
-    description: department?.description || "",
-    projects: department?.projects || 0,
-    teamLeads: department?.teamLeads || [],
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<DepartmentFormInput, unknown, DepartmentFormOutput>({
+    resolver: zodResolver(departmentFormSchema),
+    defaultValues: {
+      name: department?.name || "",
+      description: department?.description || "",
+      headId: department?.headId || "",
+      budget: asText(department?.budget),
+      budgetSpent: asText(department?.budgetSpent ?? 0),
+      location: department?.location || "",
+      projects: asText(department?.projects ?? 0),
+      status: department?.status || "Active",
+    },
   });
-  const [errors, setErrors] = useState<DepartmentFormErrors>({});
 
-  const validateForm = () => {
-    const newErrors: DepartmentFormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Department name is required";
-    }
-
-    if (!formData.headId) {
-      newErrors.headId = "Department head is required";
-    }
-
-    if (!formData.budget) {
-      newErrors.budget = "Budget is required";
-    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) <= 0) {
-      newErrors.budget = "Please enter a valid budget amount";
-    }
-
-    if (!formData.location.trim()) {
-      newErrors.location = "Location is required";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateForm()) {
-      const selectedManager = managers.find(
-        (manager) => manager.id === formData.headId,
-      );
-      onSubmit({
-        ...formData,
-        head: selectedManager?.name || "",
-        budget: Number(formData.budget),
-        budgetSpent: Number(formData.budgetSpent),
-        projects: Number(formData.projects),
-      });
-    }
-  };
-
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const name = e.target.name as keyof DepartmentFormValues;
-    const { value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-
-    if (name === "headId") {
-      const selectedManager = managers.find((manager) => manager.id === value);
-      if (selectedManager) {
-        setFormData((prev) => ({
-          ...prev,
-          headId: value,
-          head: selectedManager.name,
-        }));
-      }
-    }
-  };
+  const submit = (values: DepartmentFormOutput) =>
+    onSubmit({
+      ...values,
+      head: managers.find((m) => m.id === values.headId)?.name || "",
+      teamLeads: department?.teamLeads || [],
+    });
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(submit)}>
       <VStack spacing={4}>
         <FormControl isInvalid={!!errors.name} isRequired>
           <FormLabel>Department Name</FormLabel>
-          <Input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter department name"
-          />
-          <FormErrorMessage>{errors.name}</FormErrorMessage>
+          <Input {...register("name")} placeholder="Enter department name" />
+          <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
         </FormControl>
 
         <FormControl isInvalid={!!errors.description} isRequired>
           <FormLabel>Description</FormLabel>
           <Textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
+            {...register("description")}
             placeholder="Enter department description"
           />
-          <FormErrorMessage>{errors.description}</FormErrorMessage>
+          <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
         </FormControl>
 
         <FormControl isInvalid={!!errors.headId} isRequired>
           <FormLabel>
             Department Head <br /> (Only Active Managers)
           </FormLabel>
-          <Select
-            name="headId"
-            value={formData.headId}
-            onChange={handleChange}
-            placeholder="Select Department Head"
-          >
+          <Select {...register("headId")} placeholder="Select Department Head">
             {managers.map((manager) => (
               <option key={manager.id} value={manager.id}>
                 {manager.name} ({manager.email})
@@ -178,7 +127,7 @@ function DepartmentForm({
               No active managers available. Please create a manager first.
             </FormErrorMessage>
           )}
-          <FormErrorMessage>{errors.headId}</FormErrorMessage>
+          <FormErrorMessage>{errors.headId?.message}</FormErrorMessage>
         </FormControl>
 
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w="full">
@@ -187,14 +136,12 @@ function DepartmentForm({
             <InputGroup>
               <InputLeftAddon>zł</InputLeftAddon>
               <Input
-                name="budget"
+                {...register("budget")}
                 type="number"
-                value={formData.budget}
-                onChange={handleChange}
                 placeholder="Enter budget amount"
               />
             </InputGroup>
-            <FormErrorMessage>{errors.budget}</FormErrorMessage>
+            <FormErrorMessage>{errors.budget?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl>
@@ -202,10 +149,8 @@ function DepartmentForm({
             <InputGroup>
               <InputLeftAddon>zł</InputLeftAddon>
               <Input
-                name="budgetSpent"
+                {...register("budgetSpent")}
                 type="number"
-                value={formData.budgetSpent}
-                onChange={handleChange}
                 placeholder="Enter spent amount"
               />
             </InputGroup>
@@ -215,22 +160,15 @@ function DepartmentForm({
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} w="full">
           <FormControl isInvalid={!!errors.location} isRequired>
             <FormLabel>Location</FormLabel>
-            <Input
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="Enter location"
-            />
-            <FormErrorMessage>{errors.location}</FormErrorMessage>
+            <Input {...register("location")} placeholder="Enter location" />
+            <FormErrorMessage>{errors.location?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl>
             <FormLabel>Projects</FormLabel>
             <Input
-              name="projects"
+              {...register("projects")}
               type="number"
-              value={formData.projects}
-              onChange={handleChange}
               placeholder="Number of projects"
             />
           </FormControl>
@@ -238,7 +176,7 @@ function DepartmentForm({
 
         <FormControl>
           <FormLabel>Status</FormLabel>
-          <Select name="status" value={formData.status} onChange={handleChange}>
+          <Select {...register("status")}>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </Select>
