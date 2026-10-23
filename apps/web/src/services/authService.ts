@@ -1,6 +1,7 @@
 import type { LoginResponse, Permission } from "@rbac/shared";
 import { hasPermission } from "@rbac/shared";
 import { api } from "../api/client";
+import { queryClient } from "../api/queryClient";
 import { toUiRole } from "../config/runtime";
 import {
   clearSession,
@@ -32,6 +33,7 @@ class AuthService {
 
   logout() {
     clearSession();
+    queryClient.clear();
   }
 
   getCurrentUser(): SessionUiUser | null {

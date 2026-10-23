@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -39,18 +39,21 @@ import {
   ShieldCheckIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { roleService } from "../services/roleService";
 import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import RoleForm from "../components/roles/RoleForm";
 import RolePermissions from "../components/roles/RolePermissions";
 import type { RoleFormData, UiRole } from "../types";
+import {
+  useRoles,
+  useCreateRole,
+  useUpdateRole,
+  useDeleteRole,
+} from "../hooks/queries";
 
 type Filters = Record<"search" | "status", string>;
 
 function Roles() {
-  const [roles, setRoles] = useState<UiRole[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UiRole | null>(null);
   const [roleToDelete, setRoleToDelete] = useState<UiRole | null>(null);
   const {
@@ -69,6 +72,10 @@ function Roles() {
     onClose: closePermissions,
   } = useDisclosure();
   const toast = useToast();
+  const { data: roles = [], isLoading } = useRoles();
+  const createRole = useCreateRole();
+  const updateRole = useUpdateRole();
+  const deleteRole = useDeleteRole();
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headerBg = useColorModeValue("rbac-system.800", "rbac-system.900");
@@ -87,26 +94,6 @@ function Roles() {
   const canCreate = authService.hasPermission("roles.create");
   const canEdit = authService.hasPermission("roles.edit");
   const canDelete = authService.hasPermission("roles.delete");
-
-  useEffect(() => {
-    loadRoles();
-  }, []);
-
-  const loadRoles = async () => {
-    try {
-      const data = await roleService.getRoles();
-      setRoles(data);
-    } catch (error) {
-      console.error("Error loading roles:", error);
-      toast({
-        title: "Error loading roles",
-        status: "error",
-        duration: 3000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAddRole = () => {
     setSelectedRole(null);
@@ -131,21 +118,20 @@ function Roles() {
   const handleRoleSubmit = async (roleData: RoleFormData) => {
     try {
       if (selectedRole) {
-        await roleService.updateRole(selectedRole.id, roleData);
+        await updateRole.mutateAsync({ id: selectedRole.id, data: roleData });
         toast({
           title: "Role updated successfully",
           status: "success",
           duration: 3000,
         });
       } else {
-        await roleService.createRole(roleData);
+        await createRole.mutateAsync(roleData);
         toast({
           title: "Role created successfully",
           status: "success",
           duration: 3000,
         });
       }
-      loadRoles();
       closeForm();
     } catch {
       toast({
@@ -159,16 +145,15 @@ function Roles() {
   const handlePermissionsSubmit = async (permissions: string[]) => {
     if (!selectedRole) return;
     try {
-      await roleService.updateRole(selectedRole.id, {
-        ...selectedRole,
-        permissions,
+      await updateRole.mutateAsync({
+        id: selectedRole.id,
+        data: { ...selectedRole, permissions },
       });
       toast({
         title: "Permissions updated successfully",
         status: "success",
         duration: 3000,
       });
-      loadRoles();
       closePermissions();
     } catch {
       toast({
@@ -182,13 +167,12 @@ function Roles() {
   const handleDeleteConfirm = async () => {
     if (!roleToDelete) return;
     try {
-      await roleService.deleteRole(roleToDelete.id);
+      await deleteRole.mutateAsync(roleToDelete.id);
       toast({
         title: "Role deleted successfully",
         status: "success",
         duration: 3000,
       });
-      loadRoles();
       closeDelete();
     } catch {
       toast({

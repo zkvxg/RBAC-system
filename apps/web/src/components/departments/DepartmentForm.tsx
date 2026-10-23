@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import {
   FormControl,
   FormLabel,
@@ -10,12 +10,11 @@ import {
   InputGroup,
   InputLeftAddon,
   FormErrorMessage,
-  useToast,
   SimpleGrid,
   Textarea,
 } from "@chakra-ui/react";
-import { userService } from "../../services/userService";
-import type { Department, Status, UiUser } from "../../types";
+import { useUsers } from "../../hooks/queries";
+import type { Department, Status } from "../../types";
 
 interface DepartmentFormValues {
   name: string;
@@ -48,7 +47,10 @@ function DepartmentForm({
   onSubmit,
   onCancel,
 }: DepartmentFormProps) {
-  const [managers, setManagers] = useState<UiUser[]>([]);
+  const { data: users = [] } = useUsers();
+  const managers = users.filter(
+    (user) => user.role === "Manager" && user.status === "Active",
+  );
   const [formData, setFormData] = useState<DepartmentFormValues>({
     name: department?.name || "",
     head: department?.head || "",
@@ -62,40 +64,6 @@ function DepartmentForm({
     teamLeads: department?.teamLeads || [],
   });
   const [errors, setErrors] = useState<DepartmentFormErrors>({});
-  const toast = useToast();
-
-  useEffect(() => {
-    const loadManagers = async () => {
-      try {
-        const users = await userService.getUsers();
-        const availableManagers = users.filter(
-          (user) => user.role === "Manager" && user.status === "Active",
-        );
-        setManagers(availableManagers);
-
-        if (department?.headId && !formData.headId) {
-          const currentHead = availableManagers.find(
-            (m) => m.id === department.headId,
-          );
-          if (currentHead) {
-            setFormData((prev) => ({
-              ...prev,
-              headId: currentHead.id,
-              head: currentHead.name,
-            }));
-          }
-        }
-      } catch {
-        toast({
-          title: "Error loading managers",
-          description: "Could not load available managers",
-          status: "error",
-          duration: 3000,
-        });
-      }
-    };
-    loadManagers();
-  }, [department]);
 
   const validateForm = () => {
     const newErrors: DepartmentFormErrors = {};

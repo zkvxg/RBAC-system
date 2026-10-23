@@ -19,6 +19,7 @@
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@rbac/shared": "*",
+    "@tanstack/react-query": "^5.105.0",
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.6.2",
     "date-fns": "^4.1.0",

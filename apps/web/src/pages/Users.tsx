@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -38,19 +38,22 @@ import {
   ClockIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { userService } from "../services/userService";
 import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
 import type { UiUser } from "../types";
 import type { UserFormValues } from "../components/users/UserForm";
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "../hooks/queries";
 
 type Filters = Record<"search" | "role" | "status" | "department", string>;
 
 function Users() {
-  const [users, setUsers] = useState<UiUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UiUser | null>(null);
   const [userToDelete, setUserToDelete] = useState<UiUser | null>(null);
   const {
@@ -64,6 +67,10 @@ function Users() {
     onClose: closeDelete,
   } = useDisclosure();
   const toast = useToast();
+  const { data: users = [], isLoading } = useUsers();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
 
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
@@ -96,27 +103,6 @@ function Users() {
 
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      const data = await userService.getUsers();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error loading users:", error);
-      toast({
-        title: "Error loading users",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleAddUser = () => {
     setSelectedUser(null);
     openForm();
@@ -135,21 +121,20 @@ function Users() {
   const handleUserSubmit = async (userData: UserFormValues) => {
     try {
       if (selectedUser) {
-        await userService.updateUser(selectedUser.id, userData);
+        await updateUser.mutateAsync({ id: selectedUser.id, data: userData });
         toast({
           title: "User updated successfully",
           status: "success",
           duration: 3000,
         });
       } else {
-        await userService.createUser(userData);
+        await createUser.mutateAsync(userData);
         toast({
           title: "User created successfully",
           status: "success",
           duration: 3000,
         });
       }
-      loadUsers();
       closeForm();
     } catch {
       toast({
@@ -163,13 +148,12 @@ function Users() {
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
     try {
-      await userService.deleteUser(userToDelete.id);
+      await deleteUser.mutateAsync(userToDelete.id);
       toast({
         title: "User deleted successfully",
         status: "success",
         duration: 3000,
       });
-      loadUsers();
       closeDelete();
     } catch {
       toast({

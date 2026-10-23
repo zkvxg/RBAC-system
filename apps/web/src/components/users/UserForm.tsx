@@ -12,9 +12,8 @@ import {
   InputGroup,
   InputLeftAddon,
 } from "@chakra-ui/react";
-import { roleService } from "../../services/roleService";
-import { departmentService } from "../../services/departmentService";
-import type { Department, Status, UiRole, UiUser } from "../../types";
+import { useDepartments, useRoles } from "../../hooks/queries";
+import type { Status, UiUser } from "../../types";
 
 export interface UserFormValues {
   name: string;
@@ -45,48 +44,20 @@ function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
     status: user?.status || "Active",
   });
 
-  const [roles, setRoles] = useState<UiRole[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const { data: roles = [] } = useRoles();
+  const { data: allDepartments = [] } = useDepartments();
+  const departments = allDepartments.filter((d) => d.status === "Active");
   const [errors, setErrors] = useState<UserFormErrors>({});
   const toast = useToast();
 
   useEffect(() => {
-    const loadRoles = async () => {
-      try {
-        const rolesData = await roleService.getRoles();
-        setRoles(rolesData);
-        const [firstRole] = rolesData;
-        if (!formData.role && firstRole) {
-          setFormData((prev) => ({ ...prev, role: firstRole.name }));
-        }
-      } catch {
-        toast({
-          title: "Error loading roles",
-          description: "Could not load available roles",
-          status: "error",
-          duration: 3000,
-        });
-      }
-    };
-    loadRoles();
-  }, []);
-
-  useEffect(() => {
-    const loadDepartments = async () => {
-      try {
-        const deptData = await departmentService.getDepartments();
-        setDepartments(deptData.filter((dept) => dept.status === "Active"));
-      } catch {
-        toast({
-          title: "Error loading departments",
-          description: "Could not load available departments",
-          status: "error",
-          duration: 3000,
-        });
-      }
-    };
-    loadDepartments();
-  }, []);
+    const [firstRole] = roles;
+    if (firstRole) {
+      setFormData((prev) =>
+        prev.role ? prev : { ...prev, role: firstRole.name },
+      );
+    }
+  }, [roles]);
 
   const validateForm = () => {
     const newErrors: UserFormErrors = {};

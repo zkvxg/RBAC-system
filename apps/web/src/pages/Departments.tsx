@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -38,16 +38,19 @@ import {
 } from "@heroicons/react/24/outline";
 import Modal from "../components/common/Modal";
 import DepartmentForm from "../components/departments/DepartmentForm";
-import { departmentService } from "../services/departmentService";
 import type { Department } from "../types";
 import type { DepartmentSubmitData } from "../components/departments/DepartmentForm";
 import { errorMessage } from "../utils/errors";
+import {
+  useDepartments,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+} from "../hooks/queries";
 
 type Filters = Record<"search" | "status" | "location", string>;
 
 function Departments() {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
   const [departmentToDelete, setDepartmentToDelete] =
@@ -63,6 +66,10 @@ function Departments() {
     onClose: closeDelete,
   } = useDisclosure();
   const toast = useToast();
+  const { data: departments = [], isLoading } = useDepartments();
+  const createDepartment = useCreateDepartment();
+  const updateDepartment = useUpdateDepartment();
+  const deleteDepartment = useDeleteDepartment();
 
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.600", "gray.300");
@@ -78,26 +85,6 @@ function Departments() {
     status: "",
     location: "",
   });
-
-  useEffect(() => {
-    loadDepartments();
-  }, []);
-
-  const loadDepartments = async () => {
-    try {
-      const data = await departmentService.getDepartments();
-      setDepartments(data);
-    } catch (error) {
-      toast({
-        title: "Error loading departments",
-        description: errorMessage(error),
-        status: "error",
-        duration: 3000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleAddDepartment = () => {
     setSelectedDepartment(null);
@@ -119,10 +106,10 @@ function Departments() {
   ) => {
     try {
       if (selectedDepartment) {
-        await departmentService.updateDepartment(
-          selectedDepartment.id,
-          departmentData,
-        );
+        await updateDepartment.mutateAsync({
+          id: selectedDepartment.id,
+          data: departmentData,
+        });
         toast({
           title: "Department Updated",
           description: "Department has been successfully updated",
@@ -130,7 +117,7 @@ function Departments() {
           duration: 3000,
         });
       } else {
-        await departmentService.createDepartment(departmentData);
+        await createDepartment.mutateAsync(departmentData);
         toast({
           title: "Department Created",
           description: "New department has been successfully created",
@@ -138,7 +125,6 @@ function Departments() {
           duration: 3000,
         });
       }
-      loadDepartments();
       closeForm();
     } catch (error) {
       toast({
@@ -156,14 +142,13 @@ function Departments() {
   const handleDeleteConfirm = async () => {
     if (!departmentToDelete) return;
     try {
-      await departmentService.deleteDepartment(departmentToDelete.id);
+      await deleteDepartment.mutateAsync(departmentToDelete.id);
       toast({
         title: "Department Deleted",
         description: "Department has been successfully deleted",
         status: "success",
         duration: 3000,
       });
-      loadDepartments();
       closeDelete();
     } catch (error) {
       toast({
