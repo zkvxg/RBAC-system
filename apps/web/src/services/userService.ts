@@ -1,7 +1,6 @@
-import { api } from "../api/client";
 import type { Paginated, RoleDto, UserDto } from "@rbac/shared";
-import { MOCK_USERS } from "../mocks/usersMock";
-import { USE_MOCKS, toApiRoleName, toUiRole } from "../config/runtime";
+import { api } from "../api/client";
+import { toApiRoleName, toUiRole } from "../config/runtime";
 import { rethrow } from "./http";
 import type { DeleteResult, UiUser, UserFormData } from "../types";
 
@@ -35,7 +34,7 @@ const buildBackendPayload = (userData: UserFormData) => ({
 
 async function resolveRoleId(uiRoleName: string | undefined): Promise<number> {
   const apiRole = toApiRoleName(uiRoleName);
-  const { data } = await api.get<RoleDto[]>(`/roles`);
+  const { data } = await api.get<RoleDto[]>("/roles");
   const match = data.find((r) => String(r.name).toLowerCase() === apiRole);
   if (!match) {
     throw new Error(`Role ${apiRole} does not exist in backend`);
@@ -43,33 +42,22 @@ async function resolveRoleId(uiRoleName: string | undefined): Promise<number> {
   return match.id;
 }
 
-const DEFAULT_PERMISSIONS: Record<string, string[]> = {
-  Admin: ["users.manage", "roles.manage", "reports.view", "reports.create"],
-  Manager: ["users.view", "reports.view", "reports.create"],
-};
-
 class UserService {
   async getUsers(): Promise<UiUser[]> {
     try {
-      if (!USE_MOCKS) {
-        const { data } = await api.get<Paginated<UserDto>>(`/users`, {
-          params: { limit: 100 },
-        });
-        return data.data.map(mapApiUserToUi);
-      }
-      return MOCK_USERS;
+      const { data } = await api.get<Paginated<UserDto>>("/users", {
+        params: { limit: 100 },
+      });
+      return data.data.map(mapApiUserToUi);
     } catch (error) {
       return handleError(error);
     }
   }
 
-  async getUserById(id: string): Promise<UiUser | undefined> {
+  async getUserById(id: string): Promise<UiUser> {
     try {
-      if (!USE_MOCKS) {
-        const { data } = await api.get<UserDto>(`/users/${id}`);
-        return mapApiUserToUi(data);
-      }
-      return MOCK_USERS.find((u) => u.id === id);
+      const { data } = await api.get<UserDto>(`/users/${id}`);
+      return mapApiUserToUi(data);
     } catch (error) {
       return handleError(error);
     }
@@ -77,61 +65,20 @@ class UserService {
 
   async createUser(userData: UserFormData): Promise<UiUser> {
     try {
-      if (!USE_MOCKS) {
-        const roleId = await resolveRoleId(userData.role);
-        const payload = {
-          ...buildBackendPayload(userData),
-          password: userData.password || "test123",
-          roleId,
-        };
-        const { data } = await api.post<UserDto>(`/users`, payload);
-        return mapApiUserToUi(data);
-      }
-
-      const maxId = Math.max(
-        ...MOCK_USERS.map((u) => parseInt(u.id.replace("USR", ""))),
-      );
-      const formattedId = `USR${String(maxId + 1).padStart(3, "0")}`;
-      const newUser: UiUser = {
-        name: "",
-        email: "",
-        role: "Employee",
-        department: "",
-        phone: "",
-        location: "",
-        ...userData,
-        id: formattedId,
-        status: "Active",
-        joinDate: new Date().toISOString().split("T")[0],
-        lastActive: new Date().toISOString(),
-        permissions: this.getDefaultPermissions(userData.role),
-      };
-      MOCK_USERS.push(newUser);
-      return newUser;
+      const roleId = await resolveRoleId(userData.role);
+      const { data } = await api.post<UserDto>("/users", {
+        ...buildBackendPayload(userData),
+        password: userData.password || "test123",
+        roleId,
+      });
+      return mapApiUserToUi(data);
     } catch (error) {
       return handleError(error);
     }
   }
 
-  getDefaultPermissions(role: string | undefined): string[] {
-    return DEFAULT_PERMISSIONS[role ?? ""] ?? ["reports.view"];
-  }
-
-  async updateUser(
-    id: string,
-    userData: UserFormData,
-  ): Promise<UiUser | undefined> {
+  async updateUser(id: string, userData: UserFormData): Promise<UiUser> {
     try {
-      if (USE_MOCKS) {
-        const index = MOCK_USERS.findIndex((u) => u.id === id);
-        const existing = MOCK_USERS[index];
-        if (existing) {
-          const updated = { ...existing, ...userData };
-          MOCK_USERS[index] = updated;
-          return updated;
-        }
-      }
-
       const { data } = await api.put<UserDto>(
         `/users/${id}`,
         buildBackendPayload(userData),
@@ -150,14 +97,6 @@ class UserService {
 
   async deleteUser(id: string): Promise<DeleteResult> {
     try {
-      if (USE_MOCKS) {
-        const index = MOCK_USERS.findIndex((u) => u.id === id);
-        if (index !== -1) {
-          MOCK_USERS.splice(index, 1);
-          return { success: true };
-        }
-      }
-
       await api.delete(`/users/${id}`);
       return { success: true };
     } catch (error) {

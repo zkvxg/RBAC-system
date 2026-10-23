@@ -40,6 +40,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.4",
+    "msw": "^2.15.0",
     "playwright": "^1.41.2",
     "postcss": "^8.4.31",
     "recharts": "^2.13.3",
@@ -48,5 +49,10 @@
     "terser": "^5.36.0",
     "typescript-eslint": "^8.72.1",
     "vite": "^5.0.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
