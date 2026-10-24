@@ -23,10 +23,13 @@ import {
 import { BellIcon, UserIcon } from "@heroicons/react/24/outline";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { hasPermission, type Permission } from "@rbac/shared";
+import { SECTION_PERMISSIONS } from "../../config/access";
+import { useSessionUser } from "../../hooks/useSession";
 
 function Header() {
   const navigate = useNavigate();
-  const user = authService.getCurrentUser();
+  const user = useSessionUser();
 
   const bgColor = useColorModeValue("rbac-system.800", "rbac-system.900");
   const borderColor = useColorModeValue("whiteAlpha.300", "whiteAlpha.300");
@@ -100,17 +103,26 @@ function Header() {
   const navActiveBg = useColorModeValue("whiteAlpha.200", "whiteAlpha.200");
   const navHoverBg = useColorModeValue("whiteAlpha.150", "whiteAlpha.150");
 
-  const navigation = [
-    {
-      name: "Dashboard",
-      href: "/dashboard",
-      roles: ["Admin", "Manager", "Employee"],
-    },
-    { name: "Users", href: "/users", roles: ["Admin", "Manager"] },
-    { name: "Roles", href: "/roles", roles: ["Admin"] },
-    { name: "Analytics", href: "/analytics", roles: ["Admin", "Manager"] },
-    { name: "Departments", href: "/departments", roles: ["Admin", "Manager"] },
-  ].filter((item) => !!user && item.roles.includes(user.role));
+  const navigation: { name: string; href: string; permission?: Permission }[] =
+    [
+      { name: "Dashboard", href: "/dashboard" },
+      { name: "Users", href: "/users", permission: SECTION_PERMISSIONS.users },
+      { name: "Roles", href: "/roles", permission: SECTION_PERMISSIONS.roles },
+      {
+        name: "Analytics",
+        href: "/analytics",
+        permission: SECTION_PERMISSIONS.analytics,
+      },
+      {
+        name: "Departments",
+        href: "/departments",
+        permission: SECTION_PERMISSIONS.departments,
+      },
+    ].filter(
+      (item) =>
+        !!user &&
+        (!item.permission || hasPermission(user.permissions, item.permission)),
+    );
 
   return (
     <Box

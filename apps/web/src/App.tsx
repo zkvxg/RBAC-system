@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { authService } from "./services/authService";
+import { SECTION_PERMISSIONS } from "./config/access";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -146,7 +147,7 @@ function App() {
                 <Route
                   path="/users"
                   element={
-                    <ProtectedRoute allowedRoles={["Admin", "Manager"]}>
+                    <ProtectedRoute permission={SECTION_PERMISSIONS.users}>
                       <Users />
                     </ProtectedRoute>
                   }
@@ -154,7 +155,7 @@ function App() {
                 <Route
                   path="/roles"
                   element={
-                    <ProtectedRoute allowedRoles={["Admin", "Manager"]}>
+                    <ProtectedRoute permission={SECTION_PERMISSIONS.roles}>
                       <Roles />
                     </ProtectedRoute>
                   }
@@ -162,7 +163,7 @@ function App() {
                 <Route
                   path="/analytics"
                   element={
-                    <ProtectedRoute allowedRoles={["Admin", "Manager"]}>
+                    <ProtectedRoute permission={SECTION_PERMISSIONS.analytics}>
                       <Analytics />
                     </ProtectedRoute>
                   }
@@ -171,7 +172,9 @@ function App() {
                 <Route
                   path="/departments"
                   element={
-                    <ProtectedRoute allowedRoles={["Admin", "Manager"]}>
+                    <ProtectedRoute
+                      permission={SECTION_PERMISSIONS.departments}
+                    >
                       <Departments />
                     </ProtectedRoute>
                   }

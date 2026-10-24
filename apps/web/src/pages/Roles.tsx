@@ -39,7 +39,6 @@ import {
   ShieldCheckIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import RoleForm from "../components/roles/RoleForm";
 import RolePermissions from "../components/roles/RolePermissions";
@@ -50,6 +49,8 @@ import {
   useUpdateRole,
   useDeleteRole,
 } from "../hooks/queries";
+import { usePermission } from "../hooks/useSession";
+import Can from "../components/auth/Can";
 
 type Filters = Record<"search" | "status", string>;
 
@@ -91,9 +92,8 @@ function Roles() {
     status: "",
   });
 
-  const canCreate = authService.hasPermission("roles.create");
-  const canEdit = authService.hasPermission("roles.edit");
-  const canDelete = authService.hasPermission("roles.delete");
+  const canEdit = usePermission("roles.edit");
+  const canDelete = usePermission("roles.delete");
 
   const handleAddRole = () => {
     setSelectedRole(null);
@@ -359,7 +359,7 @@ function Roles() {
             <option value="Inactive">Inactive</option>
           </Select>
         </Stack>
-        {canCreate && (
+        <Can permission="roles.create">
           <Button
             leftIcon={<PlusIcon className="h-5 w-5" />}
             colorScheme="rbac-system"
@@ -367,7 +367,7 @@ function Roles() {
           >
             Add Role
           </Button>
-        )}
+        </Can>
       </Flex>
 
       <Text color={textColor} fontSize="sm" mb={4}>

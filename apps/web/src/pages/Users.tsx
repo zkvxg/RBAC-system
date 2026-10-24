@@ -38,7 +38,6 @@ import {
   ClockIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { authService } from "../services/authService";
 import Modal from "../components/common/Modal";
 import UserForm from "../components/users/UserForm";
 import { format, formatDistanceToNow } from "date-fns";
@@ -51,6 +50,8 @@ import {
   useUpdateUser,
   useDeleteUser,
 } from "../hooks/queries";
+import { usePermission } from "../hooks/useSession";
+import Can from "../components/auth/Can";
 
 type Filters = Record<"search" | "role" | "status" | "department", string>;
 
@@ -98,9 +99,8 @@ function Users() {
   const roles = ["Admin", "Manager", "Employee"];
   const statuses = ["Active", "Inactive"];
 
-  const canCreate = authService.hasPermission("users.create");
-  const canEdit = authService.hasPermission("users.edit");
-  const canDelete = authService.hasPermission("users.delete");
+  const canEdit = usePermission("users.edit");
+  const canDelete = usePermission("users.delete");
 
   const displayMode = useBreakpointValue({ base: "mobile", md: "desktop" });
 
@@ -387,7 +387,7 @@ function Users() {
             ))}
           </Select>
         </Stack>
-        {canCreate && (
+        <Can permission="users.create">
           <Button
             leftIcon={<PlusIcon className="h-5 w-5" />}
             colorScheme="rbac-system"
@@ -395,7 +395,7 @@ function Users() {
           >
             Add User
           </Button>
-        )}
+        </Can>
       </Flex>
 
       <Text color={textColor} fontSize="sm" mb={4}>

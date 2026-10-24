@@ -1,15 +1,16 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { authService } from "../../services/authService";
 import { getToken } from "../../auth/session";
+import type { Permission } from "@rbac/shared";
 import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children?: ReactNode;
-  allowedRoles?: string[];
+  permission?: Permission;
 }
 
-function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+function ProtectedRoute({ children, permission }: ProtectedRouteProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = authService.isAuthenticated();
@@ -25,7 +26,7 @@ function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !authService.hasRole(allowedRoles)) {
+  if (permission && !authService.hasPermission(permission)) {
     return <Navigate to="/dashboard" replace />;
   }
 
