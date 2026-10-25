@@ -29,3 +29,5 @@ Thumbs.db
 
 *-snapshots/*-win32.png
 *-snapshots/*-darwin.png
+
+coverage/

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "**/__tests__/**",
+    "vitest.config.ts",
+    "playwright-report",
+    "test-results",
+    "playwright.config.js",
+    "eslint.config.js"
+  ]
+}
