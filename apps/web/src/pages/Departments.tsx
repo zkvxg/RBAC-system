@@ -24,7 +24,6 @@ import {
   Input,
   Select,
   Stack,
-  Spinner,
   Divider,
   useBreakpointValue,
 } from "@chakra-ui/react";
@@ -47,6 +46,8 @@ import {
   useUpdateDepartment,
   useDeleteDepartment,
 } from "../hooks/queries";
+import ListStatus from "../components/common/ListStatus";
+import { listStatusOf } from "../utils/listStatus";
 
 type Filters = Record<"search" | "status" | "location", string>;
 
@@ -66,7 +67,12 @@ function Departments() {
     onClose: closeDelete,
   } = useDisclosure();
   const toast = useToast();
-  const { data: departments = [], isLoading } = useDepartments();
+  const {
+    data: departments = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useDepartments();
   const createDepartment = useCreateDepartment();
   const updateDepartment = useUpdateDepartment();
   const deleteDepartment = useDeleteDepartment();
@@ -193,6 +199,13 @@ function Departments() {
       filters.location === "" || dept.location.includes(filters.location);
 
     return matchesSearch && matchesStatus && matchesLocation;
+  });
+
+  const listStatus = listStatusOf({
+    isLoading,
+    isError,
+    total: departments.length,
+    visible: filteredDepartments.length,
   });
 
   const locations = [...new Set(departments.map((dept) => dept.location))];
@@ -395,7 +408,7 @@ function Departments() {
               </Tr>
             </Thead>
             <Tbody>
-              {isLoading ? (
+              {listStatus ? (
                 <Tr>
                   <Td
                     colSpan={6}
@@ -403,19 +416,11 @@ function Departments() {
                     py={8}
                     borderColor={borderColor}
                   >
-                    <Spinner size="sm" mr={2} />
-                    Loading...
-                  </Td>
-                </Tr>
-              ) : filteredDepartments.length === 0 ? (
-                <Tr>
-                  <Td
-                    colSpan={6}
-                    textAlign="center"
-                    py={8}
-                    borderColor={borderColor}
-                  >
-                    No departments found matching the filters
+                    <ListStatus
+                      kind={listStatus}
+                      entity="departments"
+                      onRetry={() => refetch()}
+                    />
                   </Td>
                 </Tr>
               ) : (
@@ -519,15 +524,12 @@ function Departments() {
         </Box>
       ) : (
         <Box py={2}>
-          {isLoading ? (
-            <Flex justify="center" align="center" py={8}>
-              <Spinner size="sm" mr={2} />
-              <Text>Loading...</Text>
-            </Flex>
-          ) : filteredDepartments.length === 0 ? (
-            <Text textAlign="center" py={8} color={textColor}>
-              No departments found matching the filters
-            </Text>
+          {listStatus ? (
+            <ListStatus
+              kind={listStatus}
+              entity="departments"
+              onRetry={() => refetch()}
+            />
           ) : (
             filteredDepartments.map(renderMobileCard)
           )}

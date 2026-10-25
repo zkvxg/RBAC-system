@@ -1,9 +1,10 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import {
   ChakraProvider,
@@ -13,6 +14,7 @@ import {
   extendTheme,
 } from "@chakra-ui/react";
 import Layout from "./components/layout/Layout";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -113,6 +115,10 @@ const theme = extendTheme({
   },
 });
 
+const RouteErrorBoundary = ({ children }: { children: ReactNode }) => (
+  <ErrorBoundary resetKey={useLocation().pathname}>{children}</ErrorBoundary>
+);
+
 const LoadingFallback = () => (
   <Center h="100vh">
     <Spinner size="xl" color="rbac-system.500" thickness="4px" />
@@ -132,60 +138,64 @@ function App() {
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <ChakraProvider theme={theme}>
         <Router>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<RootRedirect />} />
-              <Route path="/login" element={<Login />} />
+          <RouteErrorBoundary>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<RootRedirect />} />
+                <Route path="/login" element={<Login />} />
 
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }
-              >
                 <Route
-                  path="/users"
                   element={
-                    <ProtectedRoute permission={SECTION_PERMISSIONS.users}>
-                      <Users />
+                    <ProtectedRoute>
+                      <Layout />
                     </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/roles"
-                  element={
-                    <ProtectedRoute permission={SECTION_PERMISSIONS.roles}>
-                      <Roles />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analytics"
-                  element={
-                    <ProtectedRoute permission={SECTION_PERMISSIONS.analytics}>
-                      <Analytics />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/profile" element={<Profile />} />
-                <Route
-                  path="/departments"
-                  element={
-                    <ProtectedRoute
-                      permission={SECTION_PERMISSIONS.departments}
-                    >
-                      <Departments />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-              </Route>
+                >
+                  <Route
+                    path="/users"
+                    element={
+                      <ProtectedRoute permission={SECTION_PERMISSIONS.users}>
+                        <Users />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/roles"
+                    element={
+                      <ProtectedRoute permission={SECTION_PERMISSIONS.roles}>
+                        <Roles />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute
+                        permission={SECTION_PERMISSIONS.analytics}
+                      >
+                        <Analytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route
+                    path="/departments"
+                    element={
+                      <ProtectedRoute
+                        permission={SECTION_PERMISSIONS.departments}
+                      >
+                        <Departments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </Router>
       </ChakraProvider>
       <VercelAnalytics />

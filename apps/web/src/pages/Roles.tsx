@@ -23,7 +23,6 @@ import {
   Stack,
   Divider,
   useBreakpointValue,
-  Spinner,
   Wrap,
   WrapItem,
   InputGroup,
@@ -51,6 +50,8 @@ import {
 } from "../hooks/queries";
 import { usePermission } from "../hooks/useSession";
 import Can from "../components/auth/Can";
+import ListStatus from "../components/common/ListStatus";
+import { listStatusOf } from "../utils/listStatus";
 
 type Filters = Record<"search" | "status", string>;
 
@@ -73,7 +74,7 @@ function Roles() {
     onClose: closePermissions,
   } = useDisclosure();
   const toast = useToast();
-  const { data: roles = [], isLoading } = useRoles();
+  const { data: roles = [], isLoading, isError, refetch } = useRoles();
   const createRole = useCreateRole();
   const updateRole = useUpdateRole();
   const deleteRole = useDeleteRole();
@@ -224,6 +225,13 @@ function Roles() {
       filters.status === "" || role.status === filters.status;
 
     return matchesSearch && matchesStatus;
+  });
+
+  const listStatus = listStatusOf({
+    isLoading,
+    isError,
+    total: roles.length,
+    visible: filteredRoles.length,
   });
 
   const renderMobileCard = (role: UiRole) => (
@@ -400,7 +408,7 @@ function Roles() {
               </Tr>
             </Thead>
             <Tbody>
-              {isLoading ? (
+              {listStatus ? (
                 <Tr>
                   <Td
                     colSpan={6}
@@ -408,19 +416,11 @@ function Roles() {
                     py={8}
                     borderColor={borderColor}
                   >
-                    <Spinner size="sm" mr={2} />
-                    <Text display="inline-block">Loading...</Text>
-                  </Td>
-                </Tr>
-              ) : filteredRoles.length === 0 ? (
-                <Tr>
-                  <Td
-                    colSpan={6}
-                    textAlign="center"
-                    py={8}
-                    borderColor={borderColor}
-                  >
-                    No roles found matching the filters
+                    <ListStatus
+                      kind={listStatus}
+                      entity="roles"
+                      onRetry={() => refetch()}
+                    />
                   </Td>
                 </Tr>
               ) : (
@@ -556,17 +556,14 @@ function Roles() {
         </Box>
       ) : (
         <Box py={2}>
-          {isLoading ? (
-            <Flex justify="center" align="center" py={8}>
-              <Spinner size="sm" mr={2} />
-              <Text>Loading...</Text>
-            </Flex>
-          ) : roles.length === 0 ? (
-            <Text textAlign="center" py={8} color={textColor}>
-              No roles found matching the filters
-            </Text>
+          {listStatus ? (
+            <ListStatus
+              kind={listStatus}
+              entity="roles"
+              onRetry={() => refetch()}
+            />
           ) : (
-            roles.map(renderMobileCard)
+            filteredRoles.map(renderMobileCard)
           )}
         </Box>
       )}

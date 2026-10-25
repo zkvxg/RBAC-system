@@ -25,7 +25,6 @@ import {
   Select,
   Divider,
   useBreakpointValue,
-  Spinner,
   Tooltip,
 } from "@chakra-ui/react";
 import {
@@ -52,6 +51,8 @@ import {
 } from "../hooks/queries";
 import { usePermission } from "../hooks/useSession";
 import Can from "../components/auth/Can";
+import ListStatus from "../components/common/ListStatus";
+import { listStatusOf } from "../utils/listStatus";
 
 type Filters = Record<"search" | "role" | "status" | "department", string>;
 
@@ -69,7 +70,7 @@ function Users() {
     onClose: closeDelete,
   } = useDisclosure();
   const toast = useToast();
-  const { data: users = [], isLoading } = useUsers();
+  const { data: users = [], isLoading, isError, refetch } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
@@ -203,6 +204,13 @@ function Users() {
       filters.department === "" || user.department === filters.department;
 
     return matchesSearch && matchesRole && matchesStatus && matchesDepartment;
+  });
+
+  const listStatus = listStatusOf({
+    isLoading,
+    isError,
+    total: users.length,
+    visible: filteredUsers.length,
   });
 
   const handleFilterChange = (field: keyof Filters, value: string) => {
@@ -428,7 +436,7 @@ function Users() {
               </Tr>
             </Thead>
             <Tbody>
-              {isLoading ? (
+              {listStatus ? (
                 <Tr>
                   <Td
                     colSpan={6}
@@ -436,18 +444,11 @@ function Users() {
                     py={8}
                     borderColor={borderColor}
                   >
-                    Loading...
-                  </Td>
-                </Tr>
-              ) : filteredUsers.length === 0 ? (
-                <Tr>
-                  <Td
-                    colSpan={6}
-                    textAlign="center"
-                    py={8}
-                    borderColor={borderColor}
-                  >
-                    No users found matching the filters
+                    <ListStatus
+                      kind={listStatus}
+                      entity="users"
+                      onRetry={() => refetch()}
+                    />
                   </Td>
                 </Tr>
               ) : (
@@ -589,15 +590,12 @@ function Users() {
         </Box>
       ) : (
         <Box py={2}>
-          {isLoading ? (
-            <Flex justify="center" align="center" py={8}>
-              <Spinner size="sm" mr={2} />
-              <Text>Loading...</Text>
-            </Flex>
-          ) : filteredUsers.length === 0 ? (
-            <Text textAlign="center" py={8} color={textColor}>
-              No users found matching the filters
-            </Text>
+          {listStatus ? (
+            <ListStatus
+              kind={listStatus}
+              entity="users"
+              onRetry={() => refetch()}
+            />
           ) : (
             filteredUsers.map(renderMobileCard)
           )}
