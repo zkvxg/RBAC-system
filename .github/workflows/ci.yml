@@ -50,6 +50,31 @@ jobs:
       - name: Build api
         run: npm run build -w @rbac/api
 
+  test-unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run test:coverage --workspaces --if-present
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            apps/api/coverage/
+            apps/web/coverage/
+          retention-days: 14
+
   test-api:
     name: API tests (${{ matrix.database }})
     runs-on: ubuntu-latest
@@ -83,7 +108,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run test:api
+      - run: npm run test:integration -w @rbac/api
 
       - name: Verify migrations roll back and reapply
         if: matrix.database == 'postgres'

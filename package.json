@@ -16,7 +16,9 @@
     "prepare": "husky",
     "build:shared": "npm run build -w @rbac/shared",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "postinstall": "npm run build:shared"
+    "postinstall": "npm run build:shared",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
