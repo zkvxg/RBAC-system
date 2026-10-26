@@ -1,12 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-async function login(page) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("admin@test.com");
-  await page.getByPlaceholder("Enter your password").fill("test123");
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/\/dashboard$/);
-}
+import { loginAs } from "./pages/LoginPage";
 
 test.describe("Performance Tests", () => {
   test("should load dashboard within acceptable time", async ({ page }) => {
@@ -23,7 +16,7 @@ test.describe("Performance Tests", () => {
   });
 
   test("should measure page load metrics", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     const metrics = await page.evaluate(() => {
       const navigation = performance.getEntriesByType("navigation")[0];
@@ -40,7 +33,7 @@ test.describe("Performance Tests", () => {
   });
 
   test("should handle rapid form submissions", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
 
@@ -51,7 +44,7 @@ test.describe("Performance Tests", () => {
   });
 
   test("should paginate large datasets efficiently", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
 
@@ -75,7 +68,7 @@ test.describe("Visual Regression Tests", () => {
   });
 
   test("dashboard should match screenshot", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await expect(page).toHaveScreenshot("dashboard.png", {
       fullPage: true,
@@ -85,7 +78,7 @@ test.describe("Visual Regression Tests", () => {
   });
 
   test("users list should match screenshot", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
     await page.waitForSelector("tbody tr");
@@ -98,7 +91,7 @@ test.describe("Visual Regression Tests", () => {
   });
 
   test("user form modal should match screenshot", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
     await page.getByRole("button", { name: /add user/i }).click();
@@ -113,7 +106,7 @@ test.describe("Visual Regression Tests", () => {
   });
 
   test("roles page should match screenshot", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/roles");
     await page.waitForSelector("table");
@@ -170,7 +163,7 @@ test.describe("Cross-browser Compatibility", () => {
   test("should render correctly on tablet viewport", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
 
-    await login(page);
+    await loginAs(page);
 
     await expect(page.getByText(/rbac system/i)).toBeVisible();
   });
@@ -231,7 +224,7 @@ test.describe("Network Conditions Tests", () => {
 
 test.describe("Data Integrity Tests", () => {
   test("should preserve form data on validation error", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
     await page.getByRole("button", { name: /add user/i }).click();
@@ -246,7 +239,7 @@ test.describe("Data Integrity Tests", () => {
   });
 
   test("should clear form after successful submission", async ({ page }) => {
-    await login(page);
+    await loginAs(page);
 
     await page.goto("/users");
     await page.getByRole("button", { name: /add user/i }).click();

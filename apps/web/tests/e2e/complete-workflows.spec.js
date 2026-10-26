@@ -1,50 +1,10 @@
 import { test, expect } from "@playwright/test";
-
-async function login(page, role = "admin") {
-  const creds = {
-    admin: { email: "admin@test.com", password: "test123" },
-    manager: { email: "manager@test.com", password: "test123" },
-    employee: { email: "employee@test.com", password: "test123" },
-  };
-  const { email, password } = creds[role];
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByPlaceholder("Enter your password").fill(password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20000 });
-}
-
-async function createTestUser(page, suffix = Date.now()) {
-  const name = `E2E User ${suffix}`;
-  const email = `e2e-${suffix}@test.com`;
-  await page.goto("/users");
-  await page.getByRole("button", { name: /add user/i }).click();
-  await page.getByLabel("Full Name").fill(name);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Role").selectOption({ label: "Employee" });
-  await page.getByLabel("Department").selectOption({ label: "IT" });
-  await page.getByLabel("Phone Number").fill("123456789");
-  await page.getByLabel("Location").fill("Warsaw, Poland");
-  await page.getByRole("button", { name: /create user/i }).click();
-  await expect(page.getByText("User created successfully").first()).toBeVisible(
-    { timeout: 10000 },
-  );
-  await expect(page.getByRole("button", { name: /create user/i })).toBeHidden({
-    timeout: 10000,
-  });
-  await expect(
-    page.locator("tbody tr").filter({ hasText: email }).first(),
-  ).toBeVisible({ timeout: 15000 });
-  return { name, email };
-}
-
-function userRow(page, email) {
-  return page.locator("tbody tr").filter({ hasText: email }).first();
-}
+import { loginAs } from "./pages/LoginPage";
+import { UsersPage } from "./pages/UsersPage";
 
 test.describe("User Management Complete Workflow", () => {
   test.beforeEach(async ({ page }) => {
-    await login(page, "admin");
+    await loginAs(page, "admin");
   });
 
   test("should navigate to users page and display users list", async ({
@@ -92,9 +52,10 @@ test.describe("User Management Complete Workflow", () => {
   });
 
   test("should edit existing user", async ({ page }) => {
-    const { email } = await createTestUser(page, `edit-${Date.now()}`);
+    const users = new UsersPage(page);
+    const { email } = await users.createUser(`edit-${Date.now()}`);
 
-    const row = userRow(page, email);
+    const row = users.row(email);
     await expect(row).toBeVisible({ timeout: 15000 });
 
     await row.getByRole("button", { name: /edit user/i }).click();
@@ -118,9 +79,11 @@ test.describe("User Management Complete Workflow", () => {
   });
 
   test("should delete user", async ({ page }) => {
-    const { email } = await createTestUser(page, `del-${Date.now()}`);
+    const users = new UsersPage(page);
+    const { email } = await users.createUser(`del-${Date.now()}`);
 
-    await userRow(page, email)
+    await new UsersPage(page)
+      .row(email)
       .getByRole("button", { name: /delete user/i })
       .click();
 
@@ -137,19 +100,24 @@ test.describe("User Management Complete Workflow", () => {
   });
 
   test("should filter users by search", async ({ page }) => {
-    const { name, email } = await createTestUser(page, `search-${Date.now()}`);
+    const users = new UsersPage(page);
+    const { name, email } = await users.createUser(`search-${Date.now()}`);
 
     const searchInput = page.getByPlaceholder(/search users/i);
     await expect(searchInput).toBeVisible({ timeout: 10000 });
     await searchInput.fill(name);
 
-    await expect(userRow(page, email)).toBeVisible({ timeout: 15000 });
+    await expect(users.row(email)).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("should change user role", async ({ page }) => {
-    const { email } = await createTestUser(page, `role-${Date.now()}`);
+    const users = new UsersPage(page);
+    const { email } = await users.createUser(`role-${Date.now()}`);
 
-    await userRow(page, email)
+    await new UsersPage(page)
+      .row(email)
       .getByRole("button", { name: /edit user/i })
       .click();
 
@@ -216,7 +184,7 @@ test.describe("User Management Complete Workflow", () => {
 
 test.describe("Role Management Workflow", () => {
   test.beforeEach(async ({ page }) => {
-    await login(page, "admin");
+    await loginAs(page, "admin");
   });
 
   test("should navigate to roles page", async ({ page }) => {
@@ -298,7 +266,7 @@ test.describe("Role Management Workflow", () => {
 
 test.describe("Authentication Edge Cases", () => {
   test("should handle session timeout gracefully", async ({ page }) => {
-    await login(page, "admin");
+    await loginAs(page, "admin");
 
     await page.evaluate(() => localStorage.clear());
 

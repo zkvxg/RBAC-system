@@ -1,21 +1,8 @@
 import { test, expect } from "@playwright/test";
-
-async function login(page, role = "admin") {
-  const creds = {
-    admin: { email: "admin@test.com", password: "test123" },
-    manager: { email: "manager@test.com", password: "test123" },
-    employee: { email: "employee@test.com", password: "test123" },
-  };
-  const { email, password } = creds[role];
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByPlaceholder("Enter your password").fill(password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20000 });
-}
+import { loginAs } from "./pages/LoginPage";
 
 test("user form validation and create user", async ({ page }) => {
-  await login(page, "admin");
+  await loginAs(page, "admin");
   await page.getByRole("link", { name: "Users" }).click();
 
   await page.getByRole("button", { name: /add user/i }).click();
@@ -48,7 +35,7 @@ test("user form validation and create user", async ({ page }) => {
 });
 
 test("employee cannot see admin-only navigation", async ({ page }) => {
-  await login(page, "employee");
+  await loginAs(page, "employee");
 
   await expect(page.getByRole("link", { name: "Users" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Roles" })).toHaveCount(0);
