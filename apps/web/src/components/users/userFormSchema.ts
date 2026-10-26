@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { passwordSchema } from "@rbac/shared";
+import { validatePassword } from "@rbac/shared";
 
 const PHONE_DIGITS = 9;
 
@@ -25,7 +25,10 @@ export const userFormSchema = z.object({
     ),
   location: z.string().trim().min(1, "Location is required"),
   status: z.enum(["Active", "Inactive"]),
-  password: z.union([z.literal(""), passwordSchema]),
+  password: z.string().check((ctx) => {
+    const message = ctx.value === "" ? null : validatePassword(ctx.value);
+    if (message) ctx.issues.push({ code: "custom", message, input: ctx.value });
+  }),
 });
 
 export type UserFormValues = z.output<typeof userFormSchema>;
