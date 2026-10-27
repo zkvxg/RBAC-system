@@ -51,4 +51,30 @@ test.describe("Observability", () => {
       expect(response.status()).toBe(200);
     });
   });
+
+  test.describe("API docs", () => {
+    test("should serve the openapi document", async () => {
+      const response = await apiClient.get("/api/docs/openapi.json");
+
+      expect(response.status()).toBe(200);
+      const doc = await response.json();
+      expect(doc.openapi).toBe("3.1.0");
+      expect(Object.keys(doc.paths)).toEqual(
+        expect.arrayContaining(["/api/users", "/api/roles/{id}"]),
+      );
+      const createUser =
+        doc.paths["/api/users"].post.requestBody.content["application/json"]
+          .schema;
+      expect(createUser.required).toEqual(
+        expect.arrayContaining(["username", "email", "password"]),
+      );
+    });
+
+    test("should serve the interactive docs page", async () => {
+      const response = await apiClient.get("/api/docs/");
+
+      expect(response.status()).toBe(200);
+      expect(await response.text()).toContain("swagger-ui");
+    });
+  });
 });

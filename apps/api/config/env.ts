@@ -28,6 +28,7 @@ const schema = z
     DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
     DATABASE_SSL: booleanString.default(false),
     DB_AUTO_MIGRATE: booleanString.optional(),
+    API_DOCS: booleanString.optional(),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .optional(),
@@ -43,6 +44,7 @@ const schema = z
     ...env,
     LOG_LEVEL: env.LOG_LEVEL ?? (env.NODE_ENV === "test" ? "silent" : "info"),
     DB_AUTO_MIGRATE: env.DB_AUTO_MIGRATE ?? env.NODE_ENV === "development",
+    API_DOCS: env.API_DOCS ?? env.NODE_ENV !== "production",
   }));
 
 export type Env = z.infer<typeof schema>;
