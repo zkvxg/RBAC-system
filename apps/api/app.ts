@@ -13,7 +13,18 @@ import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 export const app = express();
 
 app.use(requestLogger);
-app.use(helmet());
+// https-only headers stay off over plain http in development: safari
+// (unlike chromium) applies them to localhost, upgrades asset requests to
+// https and leaves pages such as /api/docs blank
+const isProduction = env.NODE_ENV === "production";
+app.use(
+  helmet({
+    hsts: isProduction,
+    contentSecurityPolicy: {
+      directives: { upgradeInsecureRequests: isProduction ? [] : null },
+    },
+  }),
+);
 app.use(
   cors({
     origin: (origin, callback) =>
