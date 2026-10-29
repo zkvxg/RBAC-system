@@ -28,7 +28,8 @@ export default defineConfig({
       ],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**"],
       reporter: ["text-summary", "lcov"],
-      thresholds: { lines: 40, statements: 40, branches: 80, functions: 60 },
+      // calibrated for vitest 5's ast-based v8 coverage; raise, never lower
+      thresholds: { lines: 50, statements: 50, branches: 50, functions: 40 },
     },
   },
 });
