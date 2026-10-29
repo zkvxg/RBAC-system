@@ -5,7 +5,7 @@
     "dist",
     "tests",
     "**/__tests__/**",
-    "vitest.config.ts",
+    "vitest.config.mts",
     "playwright-report",
     "test-results",
     "playwright.config.js",
