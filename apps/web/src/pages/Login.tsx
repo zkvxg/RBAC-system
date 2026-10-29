@@ -23,6 +23,7 @@ import {
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
+import CopyableText from "../components/common/CopyableText";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 function Login() {
@@ -186,9 +187,27 @@ function Login() {
                       >
                         {cred.role}
                       </Badge>
-                      <Text color={credentialTextColor}>
-                        {cred.email} / {cred.password}
-                      </Text>
+                      <CopyableText
+                        value={cred.email}
+                        color={credentialTextColor}
+                      />
+                      <CopyableText
+                        value={cred.password}
+                        color={credentialTextColor}
+                      />
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        ml="auto"
+                        type="button"
+                        aria-label={`Fill in ${cred.role} credentials`}
+                        onClick={() => {
+                          setEmail(cred.email);
+                          setPassword(cred.password);
+                        }}
+                      >
+                        Use
+                      </Button>
                     </HStack>
                   ))}
                 </Stack>
