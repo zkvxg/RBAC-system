@@ -1,0 +1,15 @@
+{
+  "name": "@rbac/shared",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Types and the permission catalog shared by the api and the web app",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

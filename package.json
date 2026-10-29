@@ -1,5 +1,38 @@
 {
-  "dependencies": {
-    "@vercel/analytics": "^2.0.1"
+  "name": "rbac-system",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @rbac/web",
+    "dev:api": "npm run dev -w @rbac/api",
+    "lint": "npm run lint --workspaces --if-present",
+    "test:api": "npm run test -w @rbac/api",
+    "test:web": "npm run test:e2e -w @rbac/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "build:shared": "npm run build -w @rbac/shared",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "postinstall": "npm run build:shared",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint-config-prettier": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.9.10",
+    "typescript": "~5.8.3",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
