@@ -77,7 +77,7 @@ function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   const phone = register("phone");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit, onInvalid)}>
       <VStack spacing={4}>
         <FormControl isInvalid={!!errors.name} isRequired>
           <FormLabel>Full Name</FormLabel>
