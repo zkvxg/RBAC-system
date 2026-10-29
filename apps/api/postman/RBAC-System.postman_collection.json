@@ -16,7 +16,7 @@
     },
     {
       "key": "userId",
-      "value": "1"
+      "value": ""
     },
     {
       "key": "roleId",
@@ -24,6 +24,19 @@
     }
   ],
   "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
     {
       "name": "Auth",
       "item": [
@@ -55,7 +68,7 @@
           "response": []
         },
         {
-          "name": "Login (Save Token)",
+          "name": "Login as Admin (Save Token)",
           "event": [
             {
               "listen": "test",
@@ -83,7 +96,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@test.com\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"test123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -267,9 +280,60 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/users",
+              "raw": "{{baseUrl}}/api/users?page=1&limit=20&search=&sortBy=createdAt&order=desc",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "users"]
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "roleId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}"]
             }
           },
           "response": []
@@ -293,13 +357,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"test123\",\n  \"name\": \"New User\",\n  \"department\": \"IT\",\n  \"phone\": \"123456789\",\n  \"location\": \"Warsaw\",\n  \"roleName\": \"employee\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"department\": \"IT\",\n  \"phone\": \"123456789\",\n  \"location\": \"Warsaw\",\n  \"roleName\": \"employee\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/users",
@@ -314,13 +388,23 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Updated Name\",\n  \"department\": \"HR\",\n  \"phone\": \"987654321\",\n  \"location\": \"Krakow\",\n  \"isActive\": true\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userId}}",
@@ -334,7 +418,12 @@
           "name": "Delete User",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/users/{{userId}}",
               "host": ["{{baseUrl}}"],

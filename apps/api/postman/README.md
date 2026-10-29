@@ -1,39 +1,38 @@
-# Postman Collection – RBAC Backend
+# Postman collection
 
-This folder contains a ready-to-import Postman collection for quick manual API checks
+`RBAC-System.postman_collection.json` covers auth, users, roles, health and an
+edge case. The OpenAPI document at `http://localhost:5000/api/docs` describes
+every endpoint in full and is the reference; this collection is for quick
+manual checks.
 
-## Files
+## Use
 
-- `RBAC-System.postman_collection.json` – main collection for auth, roles, users, and edge-case requests
+1. Start the API (`npm run dev:api` from the repository root).
+2. In Postman: **Import** → select the collection file.
+3. Set the `baseUrl` collection variable if the API is not on `http://localhost:5000`
+   (on macOS it is often `http://localhost:5001`, since 5000 is used by AirPlay).
 
-## How to use
+## Variables
 
-1. Open Postman
-2. Click **Import**
-3. Select `RBAC-System.postman_collection.json` from this folder
-4. Make sure backend is running on `http://localhost:5000`
+| Variable  | Set by                                |
+| --------- | ------------------------------------- |
+| `baseUrl` | you (default `http://localhost:5000`) |
+| `token`   | **Auth → Login as Admin**             |
+| `userId`  | **Users → Create User**               |
+| `roleId`  | **Roles → Create Role** (default `1`) |
 
-## Collection variables
+## Run order
 
-The collection uses these variables:
+1. **Auth → Login as Admin** (demo account `admin@test.com` / `test123`).
+2. **Users → Create User**, then the other user requests. They act on the
+   created user, so the seeded accounts stay untouched.
+3. **Roles → Create Role**, then update and delete it.
 
-- `baseUrl` (default: `http://localhost:5000`)
-- `token` (filled automatically after login)
-- `userId` (default: `1`)
-- `roleId` (default: `1`, updated automatically after creating a role)
-
-## Recommended run order
-
-1. `Auth -> Register User`
-2. `Auth -> Login (Save Token)`
-3. Protected endpoints (Profile, Roles, Users)
-
-## Auto scripts included
-
-- **Login (Save Token)** saves JWT token to collection variable `token`
-- **Create Role** saves returned role id to collection variable `roleId`
+**Auth → Register User** creates an employee account. Logging in as that
+account returns 403 on the users and roles endpoints, which is expected.
 
 ## Notes
 
-- This collection is for quick manual smoke/debug checks
-- Automated regression tests are already covered separately by Playwright tests
+- Passwords must be at least 8 characters with a letter and a digit.
+- `GET /api/users` is paginated: the users are in `data`, paging in `meta`.
+- Deleting or deactivating yourself, or the last administrator, is refused.
