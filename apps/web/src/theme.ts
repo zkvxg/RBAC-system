@@ -52,6 +52,11 @@ const theme = extendTheme({
           borderColor: "rbac-system.100",
           borderRadius: "sm",
           boxShadow: "0 10px 30px rgba(17, 26, 51, 0.08)",
+          _dark: {
+            bg: "rbac-system.900",
+            borderColor: "whiteAlpha.200",
+            boxShadow: "0 12px 32px rgba(0, 0, 0, 0.35)",
+          },
         },
       },
     },
