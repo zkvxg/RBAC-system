@@ -14,7 +14,7 @@
     "test:web": "npm run test:e2e -w @rbac/web",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "build:shared": "npm run build -w @rbac/shared",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "postinstall": "npm run build:shared",
