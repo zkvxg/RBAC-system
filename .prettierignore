@@ -7,3 +7,5 @@ package-lock.json
 *.png
 *.ttf
 *.sqlite
+CHANGELOG.md
+.release-please-manifest.json
