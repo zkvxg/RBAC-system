@@ -20,6 +20,14 @@ permissions through a React dashboard backed by a TypeScript/Express API.
 - **Mock mode** – the frontend runs without a backend; an in-browser mock API answers the same calls
 - **Departments and analytics** – frontend-only demo screens
 
+## Interface overview
+
+![Users, roles and permissions](docs/screenshots/users-roles-permissions.jpg)
+
+![Dashboard, analytics and departments](docs/screenshots/dashboard-analytics-departments.jpg)
+
+![Profile and settings](docs/screenshots/profile-settings.jpg)
+
 ## Architecture
 
 ```mermaid
