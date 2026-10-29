@@ -6,9 +6,6 @@ test("user form validation and create user", async ({ page }) => {
   await page.getByRole("link", { name: "Users" }).click();
 
   await page.getByRole("button", { name: /add user/i }).click();
-  await page.evaluate(() => {
-    document.querySelector("form")?.setAttribute("novalidate", "");
-  });
   await page.getByLabel("Full Name").click();
   await page.getByRole("button", { name: /create user/i }).click();
 
