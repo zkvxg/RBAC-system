@@ -34,7 +34,7 @@ flowchart LR
     R[routes] --> V[zod validation] --> CT[controllers] --> S[services] --> M[Sequelize models]
   end
   M --> DB[(PostgreSQL<br/>or SQLite)]
-  SH[[@rbac/shared<br/>permission catalog, DTOs, schemas]] -.-> UI
+  SH[["@rbac/shared<br/>permission catalog, DTOs, schemas"]] -.-> UI
   SH -.-> API
 ```
 
